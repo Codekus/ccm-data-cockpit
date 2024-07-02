@@ -8,15 +8,16 @@
 
 
 
-
 ( () => {
 
   const component = {
-    name: 'todo_first',
+    name: 'data_cockpit',
     ccm: './libs/ccm/ccm.js',
     "tmp2": "tmp2 data",
     config: {
       name: "World",
+      apps: [ "ccm.store" ],
+      components: [ "ccm.store" ],
       user: [ "ccm.start", "https://ccmjs.github.io/akless-components/user/ccm.user.js", {
         realm: "cloud",
         store: "dms-user",
@@ -30,12 +31,18 @@
           //    "./libs/codemirror/codemirror.css",
           //    "./libs/codemirror/foldgutter.css"
           //  ],
+          [
+            "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/css/bootstrap.min.css",
+            "https://ccmjs.github.io/digital-makerspace/resources/styles.min.css"
+          ],
+          "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/css/bootstrap-icons.min.css",
+          { "url": "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/css/bootstrap-fonts.min.css", "context": "head" },
           "./resources/styles.css"
         ]
       ],
       "data": { // todo (name) ist hier die collection der nosql datenbank --> so erstmal public data
         store: [ "ccm.store", { "name": "todo", "url": "https://ccm2.inf.h-brs.de" } ],
-        key: "demo" // key worauf die daten gespeichert wruden
+      //  key: "demo" // key worauf die daten gespeichert wruden
       },
       // "directly": true,
       "helper": [ "ccm.load", { "url": "./libs/ccm/helper.js", "type": "module" } ],
@@ -83,12 +90,41 @@
         key: "todo"
       },
       addedTodos: [],
+      basicData: {
+        // mandatory. Der Entwickler setzt nur den Key unter dem dieses Object
+        // gespeichert wird
+        created_at: Date.now(),
+        updated_at: Date.now(),
+        key: "A Key",
+        // actual data here. can be anything
+        message: "this is the text",
+        confirmed: true,
+        _: {
+          creator: "markla",
+          realm: "cloud",
+          get: "all",
+          set: "all",
+          del: "all"
+        }
+      }
     },
     Instance: function () {
 
       let $, data;
+      const appDatas = [
+        {
+          title: "App1",
+          description: "This is a description of the first app", // description = subject beim dms
+          img: "./resources/icon.png"//meta.icon || dms.icon
+        },
+        {
+          title: "App2",
+          description: "The second description of the 2nd app", // description = subject beim dms
+          img: "./resources/icon2.png"
+        }
+      ]
       this.init = async () => {
-        debugger
+
         if (this.user) {
           // set user instance for datastore
           this.data.user = this.user
@@ -103,56 +139,64 @@
         this.onready && await this.onready( { instance: this } );
       };
       this.start = async () => {
+
+        this.html.share(appDatas, this );
         await this.html.render( this.html.main( this ), this.element );
         await this.element.querySelector("#user").appendChild(this.user.root);
-        debugger;
-        const user = await this.user.login();
-
-        const storedData = localStorage.getItem('todoList');
-        let storedData2 = await this.data.store.get(this.data.key)
-        /*
-               if (!storedData) {
-                 storedData = {
-                   todo: [],
-                   key: this.data.key,
-                   _: {
-                     access: { get: "all", set: "creator", del: "creator" } }
-                 }
-               }
-
-         */
-
-        if (storedData) {
-          debugger
-          this.addedTodos = JSON.parse(storedData);
-          const shadowRoot = document.querySelector("ccm-todo_first > div").shadowRoot
-          this.html.render(this.html.renderTodoList(this.addedTodos, this), shadowRoot.querySelector("#todo-container"));
+        data = await Promise.all( [
+          this.components.get( { deleted: false } ),
+          this.apps.get( { deleted: false } )
+        ] );
+        if (this.lang) {
+          data[0].forEach(component => this.lang.translate(component));
         }
+        data = {
+          components: {
+            arr: data[ 0 ],
+            options: {
+              title: {},
+              creator: {},
+              tags: {}
+            }
+          },
+          apps: {
+            arr: data[ 1 ],
+            options: {
+              title: {},
+              tool: {},
+              creator: {},
+              tags: {}
+            }
+          }
+        };
+
         // data = await $.dataset( this.data );
+
 
         this.onstart && await this.onstart( { instance: this } );
       };
-      this.events = {
-        onSubmit: async (todoText) => {
-          // push new todo item with empty state
-          this.addedTodos.push([todoText, ""]);
-          // container element to render in
-
-          const container = document.querySelector("ccm-todo_first > div").shadowRoot.querySelector("#todo-container")
-          this.html.render(this.html.renderTodoList(this.addedTodos, this), container);
-          await this.saveData();  // Save data to localStorage
-          $.onFinish(this);
-        },
-        test: async () => {
+      this.render = {
+        data: async (dataArray) => {
           debugger
-          console.log(await this.data.store.get("todo"))
-          debugger
-          //console.log(await this.data.store.get(this.addedTodos.key))
-          debugger
-          //   console.log(await this.data.store.get())
-          console.log(await this.data.store.get({"_.creator": "mklass2s"}))
-          console.log(this.addedTodosStore.key === "todo")
+          this.html.render(this.html.renderDataOfApp(dataArray), this.element);
         }
+      }
+      this.events = {
+        onDeleteAllData: async (appName) => {
+          console.log(appName, " deleted all data")
+
+        },
+        onShowData: async (appName) => {
+          console.log(appName, " show data")
+          // fetch data dieser app und render diese auf einer neuen page. url parameter?
+          debugger
+          const todoData = await this.data.store.get();
+          this.render.data(todoData)
+      },
+        onDeleteDataSet: async (key) => {
+            console.log(key, " deleted")
+          //this.data.store.del(key)
+        },
       };
       this.saveData = async () => {
         debugger
