@@ -19,8 +19,8 @@ export function main() {
     <main class="container">
       <h1 class="display-4 text-center my-4">Data-Cockpit</h1>
       <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
-      <div id="apps-container">
-        ${appDatas.map(appInfo => renderAppCard(appInfo))}
+      <div id="apps-container" class="row justify-content-center">
+        ${appDatas.map(appInfo => html`<div class="col-md-8">${renderAppCard(appInfo)}</div>`)}
       </div>
     </main>
   `;
@@ -59,25 +59,26 @@ function renderAppCard(appInfo) {
      */
     const cleanDescription = appInfo.description.replace(/<[^>]+(>|$)/g, "");
     return html`
-        <div class="card mb-3 p-2 ">
-            <div class="row g-3">  <div class="col-md-1"> <img src="${appInfo.img}" class="img-fluid w-100 h-100" alt="${appInfo.title}">
-            </div>
-                <div class="col-md-10"> <div class="card-body">
-                    <h5 class="card-title">${appInfo.title}</h5>
-                    <p class="card-text">${cleanDescription}</p>
-                    <div class="d-flex">
-                        <button class="btn btn-primary me-2" @click=${event => {
-                            app.onAppClick(appInfo.key)
-                        }}>Show data
-                        </button>
-                        <button class="btn btn-danger" @click=${event => {
-                            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
-                                app.events.onDeleteAllData(appInfo.key)
-                            }
-                        }}>Delete all data
-                        </button>
-                    </div>
+        <div class="card mb-3 p-2">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <img src="${appInfo.img}" class="img-fluid w-100 h-100" alt="${appInfo.title}">
                 </div>
+                <div class="col-md-10">
+                    <div class="card-body">
+                        <h5 class="card-title">${appInfo.title}</h5>
+                        <p class="card-text">${cleanDescription}</p>
+                        <div class="d-flex">
+                            <button class="btn btn-primary me-2" @click=${event => {
+                                app.onAppClick(appInfo.key);
+                            }}>Show data</button>
+                            <button class="btn btn-danger" @click=${event => {
+                                if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                                    app.events.onDeleteAllData(appInfo.key);
+                                }
+                            }}>Delete all data</button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
