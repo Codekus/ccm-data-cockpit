@@ -84,13 +84,22 @@ function renderAppCard(appInfo) {
         </div>
     `;
 }
-export function renderDataOfApp(dataArray, title) {
+export function renderDataOfApp(dataArray, title, appKey) {
     return html`
         <div class="d-flex justify-content-end ">
             <div id="user"></div>
         </div>
         <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
             <i class="bi bi-house"></i> Home
+        </button>
+        <button @click=${() => {
+            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                app.events.onDeleteAllData(appKey)
+                app.refresh()
+            }}
+            
+        } type="button" class="btn btn-danger">
+            <i class="bi bi-house"></i> Delete all data
         </button>
         <h1 class="mt-3">${title}</h1>
         <div>
@@ -168,12 +177,34 @@ export function renderAppDataCard(appData) {
   `;
 }
 
+export function noDataView() {
+    return html`
+    <div class="d-flex justify-content-end">
+      <div id="user"></div>
+    </div>
+    <main class="container d-flex flex-column justify-content-center align-items-center vh-100">
+      <div class="card shadow-lg p-4">
+        <div class="card-body">
+          <h1 class="card-title text-center mb-4">No data found</h1>
+          <p class="lead text-center text-muted">You don't have any data connected to this app.</p>
+          <div class="d-flex justify-content-center">
+            <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary text-center">
+              <i class="bi bi-house"></i> Home
+            </button>
+          </div>
+        </div>
+      </div>
+    </main>
+  `;
+}
+
 
 function renderRights(dataObject) {
     return html`
     <div>
       ${dataObject.map(data => renderAppDataCard(data))}
     </div>
+            
   `;
 }
 

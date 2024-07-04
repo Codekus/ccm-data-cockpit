@@ -163,9 +163,9 @@
                 this.onstart && await this.onstart({instance: this});
             };
             this.render = {
-                data: async (dataArray, title) => {
+                data: async (dataArray, title, appKey) => {
                     debugger
-                    this.html.render(this.html.renderDataOfApp(dataArray, title), this.element);
+                    this.html.render(this.html.renderDataOfApp(dataArray, title, appKey), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
                 }
             }
@@ -209,16 +209,15 @@
                     // daten von der app die unter "data" eingebeben wurden
                     const persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection)
                     if (persData.length === 0) {
-                        alert("No data available")
+                        await this.html.render(this.html.noDataView(), this.element);
                         return
                     }
-                    this.render.data(persData, metaData.title)
+                    this.render.data(persData, metaData.title, appKey)
                 },
-                onShowRighs: async (dataObject) => {
-                    this.render.data(dataObject)
-                },
+
                 onDeleteDataSet: async (key) => {
                     this.data.store.del(key)
+                    await this.refresh()
                 },
                 onHome: async () => {
                     debugger
