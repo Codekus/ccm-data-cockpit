@@ -21,11 +21,13 @@ export function main(app) {
     <main>
       <h1 class="">Data-Cockpit</h1>
         <br>
+        <p class="lead text-muted"> View your data of Digital Makerspace apps here.
+        </p>
       <div id="apps-container">
-        <!-- apps here -->
-          ${appDatas.map(appInfo => renderAppCard(appInfo))}
+        ${appDatas.map(appInfo => renderAppCard(appInfo))}
       </div>
     </main>
+    
   `;
 }
 
@@ -39,36 +41,35 @@ function renderAppCard(appInfo) {
         title: "",
         description: "" // description = subject beim dms
         img: meta.icon || dms.icon
+        key: ""
     }
      */
+    const cleanDescription = appInfo.description.replace(/<[^>]+(>|$)/g, "");
     return html`
-        <div class="card mb-3 p-2">
-            <div class="row g-0">
-                <div class="col-md-2">
-                    <img src="${appInfo.img}" class="img-fluid rounded-start" alt="${appInfo.title}">
-                </div>
-                <div class="col-md-10">
-                    <div class="card-body">
-                        <h5 class="card-title">${appInfo.title}</h5>
-                        <p class="card-text">${appInfo.description}</p>
-                        <div class="d-flex">
-                            <button class="btn btn-primary me-2" @click=${event => {
-                                app.events.onShowData(appInfo.title)
-                            }}
-                            >Show data
-                            </button>
-                            <button class="btn btn-danger" @click=${event => {
-                                app.events.onDeleteAllData(appInfo.title)
-                            }}>Delete all data
-                            </button>
-                        </div>
+        <div class="card mb-3 p-2 ">
+            <div class="row g-3">  <div class="col-md-1"> <img src="${appInfo.img}" class="img-fluid w-100 h-100" alt="${appInfo.title}">
+            </div>
+                <div class="col-md-10"> <div class="card-body">
+                    <h5 class="card-title">${appInfo.title}</h5>
+                    <p class="card-text">${cleanDescription}</p>
+                    <div class="d-flex">
+                        <button class="btn btn-primary me-2" @click=${event => {
+                            app.onAppClick(appInfo.key)
+                        }}>Show data
+                        </button>
+                        <button class="btn btn-danger" @click=${event => {
+                            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                                app.events.onDeleteAllData(appInfo.key)
+                            }
+                        }}>Delete all data
+                        </button>
                     </div>
+                </div>
                 </div>
             </div>
         </div>
     `;
 }
-
 export function renderDataOfApp(dataArray) {
     return html`
     <div>
@@ -79,17 +80,49 @@ export function renderDataOfApp(dataArray) {
 
 
 export function renderAppDataCard(appData) {
-
+    appData = sortObjectByKeys(appData)
+    const togglePopup = (key) => {
+        const popup = document.getElementById(`popup-${key}`);
+        if (popup) {
+            popup.style.display = popup.style.display === 'none' ? '' : 'none';
+        }
+    };
+    const permissions = (permissionsObj) => {
+        let flattenedObj = flattenObject(permissionsObj);
+        return html`
+    <table class="table">
+        <tbody>
+            ${Object.entries(flattenedObj).map(([key, value]) => html`
+            <tr>
+                <th scope="row">${key}</th>
+                <td>${value}</td>
+            </tr>
+            `)}
+        </tbody>
+    </table>
+    `;
+    }
+    const datasetKey = typeof appData.key === 'string' ? appData.key : appData.key[1];
     const rows = Object.entries(appData).map(([key, value]) => {
         if (key === 'created_at' || key === 'updated_at' || key === 'key') return '';
         return html`
       <tr>
-        <th scope="row">${key}</th>
-        <td>${value}</td>
+        <th scope="row">${key === "_" ? "Permissions" : key}</th>
+        <td>
+          ${key !== '_' ? value : html`
+            <button type="button" class="btn btn-primary" @click=${() => {debugger; togglePopup(datasetKey)}}>View</button>
+            <div id="popup-${datasetKey}" class="card" style="display: none;">
+                <div class="card-body border border-dark">
+                    ${permissions(value)}
+                    <button type="button" class="btn btn-secondary" @click=${() => togglePopup(datasetKey)}>Close</button>
+                </div>
+            </div>
+          `}
+        </td>
       </tr>
     `;
     });
-    debugger
+
     return html`
     <div class="card mb-3">
       <div class="card-header d-flex justify-content-between">
@@ -102,53 +135,48 @@ export function renderAppDataCard(appData) {
             ${rows}
           </tbody>
         </table>
-          <div class="d-flex">
-              <button class="btn btn-danger" @click=${event => {
-                  debugger
-                  app.events.onDeleteDataSet(appData.key)
-              }}>Delete
-              </button>
-          </div>
+        <div class="d-flex">
+          <button class="btn btn-danger" @click=${event => {
+        if (confirm('Are you sure you want to delete this')) {
+            app.events.onDeleteDataSet(appData.key);
+        }
+    }}>Delete</button>
+        </div>
       </div>
     </div>
   `;
 }
 
 
-
-
-
-
-
-export function todoContainer() {
-  return html`
-
-  `
-}
-
-export function getTodoElement([todoText, status], app, index) {
-  return html`
-    <div >
-      <span style="text-decoration: ${status === 'done' ? 'line-through' : ''}">${todoText}</span>
-      <input type="checkbox" .checked=${status === 'done'} @click=${e => {
-        if (e.target.checked) {
-          e.target.parentElement.querySelector("span").style.textDecoration = 'line-through';
-          app.addedTodos[index][1] = 'done';
-        } else {
-          e.target.parentElement.querySelector("span").style.textDecoration = '';
-          app.addedTodos[index][1] = '';
-        }
-        app.saveData();  // Save updated status to localStorage
-      }}>Done</input>
+function renderRights(dataObject) {
+    return html`
+    <div>
+      ${dataObject.map(data => renderAppDataCard(data))}
     </div>
   `;
 }
 
-export function renderTodoList(todosList, app) {
-  return html`
-    ${todosList.map((todoItem, index) => getTodoElement(todoItem, app, index))}
-  `;
+function flattenObject(obj, parent = '', res = {}) {
+    for (let key in obj) {
+        if (obj.hasOwnProperty(key)) {
+            let propName = parent ? key : key;
+            if (typeof obj[key] === 'object' && !Array.isArray(obj[key]) && obj[key] !== null) {
+                flattenObject(obj[key], propName, res);
+            } else {
+                res[propName] = obj[key];
+            }
+        }
+    }
+    return res;
 }
 
-
-
+function sortObjectByKeys(obj) {
+    return Object.keys(obj).sort((a, b) => {
+        if (a === '_') return 1;
+        if (b === '_') return -1;
+        return a.localeCompare(b);
+    }).reduce((result, key) => {
+        result[key] = obj[key];
+        return result;
+    }, {});
+}
