@@ -13,23 +13,19 @@ export const share = ( _appDatas, _app ) => { appDatas = _appDatas; app = _app }
 
 export function main() {
     return html`
-    <style>
-    </style>
-    <div class="d-flex justify-content-end ">
+    <div class="d-flex justify-content-end">
       <div id="user"></div>
     </div>
-    <main>
-      <h1 class="">Data-Cockpit</h1>
-        <br>
-        <p class="lead text-muted"> View your data of Digital Makerspace apps here.
-        </p>
+    <main class="container">
+      <h1 class="display-4 text-center my-4">Data-Cockpit</h1>
+      <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
       <div id="apps-container">
         ${appDatas.map(appInfo => renderAppCard(appInfo))}
       </div>
     </main>
-    
   `;
 }
+
 
 export function mainLogin() {
     return html`
