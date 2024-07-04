@@ -11,7 +11,7 @@ let appDatas, app;
 
 export const share = ( _appDatas, _app ) => { appDatas = _appDatas; app = _app };
 
-export function main(app) {
+export function main() {
     return html`
     <style>
     </style>
@@ -30,6 +30,23 @@ export function main(app) {
     
   `;
 }
+
+export function mainLogin() {
+    return html`
+    <div class="d-flex justify-content-end p-3">
+      <div id="user"></div>
+    </div>
+    <main class="container d-flex flex-column justify-content-center align-items-center vh-100">
+      <div class="card shadow-lg p-4">
+        <div class="card-body">
+          <h1 class="card-title text-center mb-4">Welcome</h1>
+          <p class="lead text-center text-muted">Login to view your data of Digital Makerspace apps here.</p>
+        </div>
+      </div>
+    </main>
+  `;
+}
+
 
 
 
@@ -70,9 +87,16 @@ function renderAppCard(appInfo) {
         </div>
     `;
 }
-export function renderDataOfApp(dataArray) {
+export function renderDataOfApp(dataArray, title) {
     return html`
-    <div>
+        <div class="d-flex justify-content-end ">
+            <div id="user"></div>
+        </div>
+        <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
+            <i class="bi bi-house"></i> Home
+        </button>
+        <h1 class="mt-3">${title}</h1>
+        <div>
       ${dataArray.map(data => renderAppDataCard(data))}
     </div>
   `;

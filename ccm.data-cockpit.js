@@ -6,7 +6,6 @@
  * @license The MIT License (MIT)
  */
 
-
 (() => {
 
     const component = {
@@ -126,7 +125,9 @@
                     // set user instance for datastore
                     this.data.user = this.user
                     this.user.onchange = () => {
-                        this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
+                    //    this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
+                        debugger
+                        this.refresh()
                     };
                 }
 
@@ -138,19 +139,34 @@
                 this.onready && await this.onready({instance: this});
             };
             this.start = async () => {
+                debugger
+
+                if (!this.user.isLoggedIn()) {
+                    this.removeParams()
+                    this.html.render(this.html.mainLogin(), this.element);
+                    await this.element.querySelector("#user").appendChild(this.user.root);
+                    return
+                }
 
                 this.html.share(await this.fetch.getAppDatas(), this);
-                await this.html.render(this.html.main(this), this.element);
+                if ($.params().app) {
+                    await this.events.onShowData($.params().app)
+                } else {
+                    await this.html.render(this.html.main(), this.element);
+                }
                 await this.element.querySelector("#user").appendChild(this.user.root);
+
+
                 // data = await $.dataset( this.data );
 
 
                 this.onstart && await this.onstart({instance: this});
             };
             this.render = {
-                data: async (dataArray) => {
+                data: async (dataArray, title) => {
                     debugger
-                    this.html.render(this.html.renderDataOfApp(dataArray), this.element);
+                    this.html.render(this.html.renderDataOfApp(dataArray, title), this.element);
+                    await this.element.querySelector("#user").appendChild(this.user.root);
                 }
             }
             this.events = {
@@ -166,13 +182,25 @@
                     const dataToDelete = data.filter(item => {
                         return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
                     });
+                    if (dataToDelete.length === 0) {
+                        alert("No data to delete")
+                        return
+                    }
                     for (const dataset of dataToDelete) {
                         await this.data.store.del(dataset.key)
                     }
-                    document.alert("All data deleted")
+                    alert("All data deleted")
                 },
                 onShowData: async (appKey) => {
                     console.log(appKey, " show data")
+
+                    if (!this.user.isLoggedIn()) {
+                        this.removeParams()
+                        await this.refresh()
+                    }
+
+                    const metaData = await this.fetch.getMetaData(appKey)
+
                     // fetch data dieser app und render diese auf einer neuen page. url parameter?
                     const configObject = await this.configs.get({app: appKey})
                     // DMS Apps have 2 Keys -->  Key of the App ---- Key of the App in the Collection
@@ -180,8 +208,11 @@
                     const collectionName = configObject[0].data.store[1].name
                     // daten von der app die unter "data" eingebeben wurden
                     const persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection)
-
-                    this.render.data(persData)
+                    if (persData.length === 0) {
+                        alert("No data available")
+                        return
+                    }
+                    this.render.data(persData, metaData.title)
                 },
                 onShowRighs: async (dataObject) => {
                     this.render.data(dataObject)
@@ -189,6 +220,11 @@
                 onDeleteDataSet: async (key) => {
                     this.data.store.del(key)
                 },
+                onHome: async () => {
+                    debugger
+                    this.removeParams()
+                    await this.refresh()
+                }
             };
             this.fetch = {
                 /**
@@ -251,6 +287,10 @@
                 debugger
                 await $.params(Object.assign({app: appKey}), true, true);
                 await this.refresh()
+            }
+            this.removeParams =  () => {
+                const url = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, url);
             }
             this.debug = async () => {
                 debugger
