@@ -126,7 +126,6 @@
                     this.data.user = this.user
                     this.user.onchange = () => {
                     //    this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
-                        debugger
                         this.refresh()
                     };
                 }
@@ -139,8 +138,7 @@
                 this.onready && await this.onready({instance: this});
             };
             this.start = async () => {
-                debugger
-
+                this.html.shareApp(this);
                 if (!this.user.isLoggedIn()) {
                     this.removeParams()
                     this.html.render(this.html.mainLogin(), this.element);
@@ -148,10 +146,11 @@
                     return
                 }
 
-                this.html.share(await this.fetch.getAppDatas(), this);
+                //this.html.share(await this.fetch.getAppDatas(), this);
                 if ($.params().app) {
                     await this.events.onShowData($.params().app)
                 } else {
+                    this.html.shareAppDatas(await this.fetch.getAppDatas());
                     await this.html.render(this.html.main(), this.element);
                 }
                 await this.element.querySelector("#user").appendChild(this.user.root);
@@ -164,7 +163,6 @@
             };
             this.render = {
                 data: async (dataArray, title, appKey) => {
-                    debugger
                     this.html.render(this.html.renderDataOfApp(dataArray, title, appKey), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
                 }
@@ -198,11 +196,14 @@
                         this.removeParams()
                         await this.refresh()
                     }
-
                     const metaData = await this.fetch.getMetaData(appKey)
 
                     // fetch data dieser app und render diese auf einer neuen page. url parameter?
                     const configObject = await this.configs.get({app: appKey})
+                    if(configObject.length === 0){
+                        await this.html.render(this.html.noDataView(), this.element);
+                        return
+                    }
                     // DMS Apps have 2 Keys -->  Key of the App ---- Key of the App in the Collection
                     const appKeyInCollection = configObject[0].data.key
                     const collectionName = configObject[0].data.store[1].name
@@ -234,7 +235,6 @@
                  */
                 getpersonalData: async (collectionName, appKeyInCollection) => {
                     this.data.store.name = collectionName;
-                    debugger
 
                     const data = await this.data.store.get({
                         "_.creator": this.user.getValue().user
@@ -248,6 +248,14 @@
                 },
                 getMetaData: async (appKey) => {
                     const appInfo = await this.apps.get({app: appKey});
+                    if (appInfo.length === 0) {
+                        return {
+                            title: "No Data",
+                            description: "No Data",
+                            icon: "",
+                            key: ""
+                        }
+                    }
                     let obj = {
                         title: appInfo[0].title,
                         description: appInfo[0].description, // description = subject beim dms
@@ -257,7 +265,6 @@
                     return obj
                 },
                 getAppDatas: async () => {
-                    debugger
                     // todo Vincent API endpoint call hier um alle apps zu bekommen
                     const metaDataArr = [];
                     for (const key of appKeys) {
@@ -283,7 +290,6 @@
                 }
             }
             this.onAppClick = async (appKey) => {
-                debugger
                 await $.params(Object.assign({app: appKey}), true, true);
                 await this.refresh()
             }

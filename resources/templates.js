@@ -9,7 +9,8 @@ export { render };
 
 let appDatas, app;
 
-export const share = ( _appDatas, _app ) => { appDatas = _appDatas; app = _app };
+export const shareAppDatas = ( _appDatas ) => { appDatas = _appDatas };
+export const shareApp = ( _app ) => { app = _app };
 
 export function main() {
     return html`
