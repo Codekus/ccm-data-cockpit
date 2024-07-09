@@ -11,7 +11,6 @@
     const component = {
         name: 'data_cockpit',
         ccm: './libs/ccm/ccm.js',
-        "tmp2": "tmp2 data",
         config: {
             name: "World",
             "apps": ["ccm.store", {"url": "https://ccm2.inf.h-brs.de", "name": "dms2-apps"}],
@@ -26,10 +25,6 @@
             }],
             "css": ["ccm.load",
                 [
-                    //  [
-                    //    "./libs/codemirror/codemirror.css",
-                    //    "./libs/codemirror/foldgutter.css"
-                    //  ],
                     [
                         "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/css/bootstrap.min.css",
                         "https://ccmjs.github.io/digital-makerspace/resources/styles.min.css"
@@ -221,7 +216,6 @@
                     await this.refresh()
                 },
                 onHome: async () => {
-                    debugger
                     this.removeParams()
                     await this.refresh()
                 }
@@ -235,7 +229,6 @@
                  */
                 getpersonalData: async (collectionName, appKeyInCollection) => {
                     this.data.store.name = collectionName;
-
                     const data = await this.data.store.get({
                         "_.creator": this.user.getValue().user
                     });
@@ -247,6 +240,7 @@
 
                 },
                 getMetaData: async (appKey) => {
+
                     const appInfo = await this.apps.get({app: appKey});
                     if (appInfo.length === 0) {
                         return {
