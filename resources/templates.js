@@ -85,11 +85,24 @@ function renderAppCard(appInfo) {
         </div>
     `;
 }
-export function renderDataOfApp(dataArray, title, appKey) {
+
+/**
+ *
+ * @param dataArray array of data objects
+ * @param creatorData is undefined if logged-in user is not the creator of the app
+ * @param title title of app
+ * @param appKey appkey of dataset in collection
+ * @returns {TemplateResult}
+ */
+export function renderDataOfApp(dataArray, creatorData, title, appKey) {
+
+
+
     return html`
         <div class="d-flex justify-content-end ">
             <div id="user"></div>
         </div>
+        
         <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
             <i class="bi bi-house"></i> Home
         </button>
@@ -104,79 +117,176 @@ export function renderDataOfApp(dataArray, title, appKey) {
         </button>
         <h1 class="mt-3">${title}</h1>
         <div>
+            ${creatorData ? renderConfigCard(creatorData[0]) : html``}
       ${dataArray.map(data => renderAppDataCard(data))}
     </div>
   `;
 }
 
+export function renderConfigCard(config) {
+    // Recursive function to render nested objects
+    function renderValue(value) {
+        if (typeof value === 'object' && value !== null) {
+            return html`
+                <table class="table table-bordered">
+                    <tbody>
+                        ${Object.entries(value).map(([nestedKey, nestedValue]) => {
+                const isIndex = !isNaN(parseInt(nestedKey, 10));
+                return html`
+                                <tr>
+                                    ${isIndex ? html`` : html`<th>${nestedKey}</th>`}
+                                    <td>${renderValue(nestedValue)}</td>
+                                </tr>
+                            `;
+            })}
+                    </tbody>
+                </table>
+            `;
+        } else {
+            return html`${value}`;
+        }
+    }
+    const togglePopup = (event) => {
+        const popup = document.getElementById('config');
+        if (!popup) return;
+
+        const isHidden = popup.style.display === 'none';
+        popup.style.display = isHidden ? '' : 'none';
+        event.target.textContent = isHidden ? 'minimize' : 'maximize';
+    };
+
+
+    return html`
+        <div class="card mt-3 mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div>
+                    <h5>Configuration Details</h5>
+                    <p>Configuration settings for this application:</p>
+
+                </div>
+                <button class="btn btn-primary" @click=${event => {
+                    togglePopup(event)
+                }}>maximize</button>
+            </div>
+        </div>
+
+        <div id="config" class="card-body" style="display: none">
+                <table class="table">
+                    <tbody>
+                        ${Object.entries(config).map(([key, value]) => {
+        const isIndex = !isNaN(parseInt(key, 10));
+        return html`
+                                <tr>
+                                    ${isIndex ? html`` : html`<th>${key}</th>`}
+                                    <td>${renderValue(value)}</td>
+                                </tr>
+                            `;
+    })}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    `;
+}
+
+
+
+
+
 
 export function renderAppDataCard(appData) {
-    appData = sortObjectByKeys(appData)
+    appData = sortObjectByKeys(appData);
+
     const togglePopup = (key) => {
         const popup = document.getElementById(`popup-${key}`);
         if (popup) {
             popup.style.display = popup.style.display === 'none' ? '' : 'none';
         }
     };
+
+    const renderValue = (value) => {
+        if (typeof value === 'object' && value !== null) {
+            return html`
+                <table class="table table-bordered">
+                    <tbody>
+                        ${Object.entries(value).map(([nestedKey, nestedValue]) => {
+                            const isIndex = !isNaN(parseInt(nestedKey, 10));
+                            return html`
+                                <tr>
+                                    ${isIndex ? html`` : html`<td>${nestedKey}</td>`}
+                                    <td>${renderValue(nestedValue)}</td>
+                                </tr>
+                            `;
+            })}
+                    </tbody>
+                </table>
+            `;
+        } else {
+            return html`${value}`;
+        }
+    };
+
     const permissions = (permissionsObj) => {
         let flattenedObj = flattenObject(permissionsObj);
         return html`
-    <table class="table">
-        <tbody>
-            ${Object.entries(flattenedObj).map(([key, value]) => html`
-            <tr>
-                <th scope="row">${key}</th>
-                <td>${value}</td>
-            </tr>
-            `)}
-        </tbody>
-    </table>
-    `;
-    }
+            <table class="table">
+                <tbody>
+                    ${Object.entries(flattenedObj).map(([key, value]) => html`
+                    <tr>
+                        <th scope="row">${key}</th>
+                        <td>${renderValue(value)}</td>
+                    </tr>
+                    `)}
+                </tbody>
+            </table>
+        `;
+    };
+
     const datasetKey = typeof appData.key === 'string' ? appData.key : appData.key[1];
     const rows = Object.entries(appData).map(([key, value]) => {
         if (key === 'created_at' || key === 'updated_at' || key === 'key') return '';
         return html`
-      <tr>
-        <th scope="row">${key === "_" ? "Permissions" : key}</th>
-        <td>
-          ${key !== '_' ? value : html`
-            <button type="button" class="btn btn-primary" @click=${() => {debugger; togglePopup(datasetKey)}}>View</button>
-            <div id="popup-${datasetKey}" class="card" style="display: none;">
-                <div class="card-body border border-dark">
-                    ${permissions(value)}
-                    <button type="button" class="btn btn-secondary" @click=${() => togglePopup(datasetKey)}>Close</button>
-                </div>
-            </div>
-          `}
-        </td>
-      </tr>
-    `;
+            <tr>
+                <th scope="row">${key === "_" ? "Permissions" : key}</th>
+                <td>
+                    ${key !== '_' ? renderValue(value) : html`
+                        <button type="button" class="btn btn-primary" @click=${() => togglePopup(datasetKey)}>View</button>
+                        <div id="popup-${datasetKey}" class="card" style="display: none;">
+                            <div class="card-body border border-dark">
+                                ${permissions(value)}
+                                <button type="button" class="btn btn-secondary" @click=${() => togglePopup(datasetKey)}>Close</button>
+                            </div>
+                        </div>
+                    `}
+                </td>
+            </tr>
+        `;
     });
 
     return html`
-    <div class="card mb-3">
-      <div class="card-header d-flex justify-content-between">
-        <div>Created at: ${appData.created_at}</div>
-        <div>Updated at: ${appData.updated_at}</div>
-      </div>
-      <div class="card-body">
-        <table class="table">
-          <tbody>
-            ${rows}
-          </tbody>
-        </table>
-        <div class="d-flex">
-          <button class="btn btn-danger" @click=${event => {
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between">
+                <div>Created at: ${appData.created_at}</div>
+                <div>Updated at: ${appData.updated_at}</div>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        ${rows}
+                    </tbody>
+                </table>
+                <div class="d-flex">
+                    <button class="btn btn-danger" @click=${event => {
         if (confirm('Are you sure you want to delete this')) {
             app.events.onDeleteDataSet(appData.key);
         }
     }}>Delete</button>
+                </div>
+            </div>
         </div>
-      </div>
-    </div>
-  `;
+    `;
 }
+
 
 export function noDataView() {
     return html`

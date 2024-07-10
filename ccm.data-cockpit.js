@@ -112,7 +112,8 @@
             const appKeys = [
                 "1719994026117X18424967169684558", // test comment kless app https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1719994026117X18424967169684558
                 "1720011698695X2920675973648237", // test comment meine ungelistet app https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1720011698695X2920675973648237
-                "1720084530064X2287127424685247" // poll debug app https://ccmjs.github.io/digital-makerspace/app.html?app=live_poll,1720084530064X2287127424685247
+                "1720084530064X2287127424685247", // poll debug app https://ccmjs.github.io/digital-makerspace/app.html?app=live_poll,1720084530064X2287127424685247
+                "1720598582962X08744772963471159"
             ]
             this.init = async () => {
 
@@ -145,6 +146,7 @@
                 if ($.params().app) {
                     await this.events.onShowData($.params().app)
                 } else {
+                    debugger
                     this.html.shareAppDatas(await this.fetch.getAppDatas());
                     await this.html.render(this.html.main(), this.element);
                 }
@@ -157,8 +159,8 @@
                 this.onstart && await this.onstart({instance: this});
             };
             this.render = {
-                data: async (dataArray, title, appKey) => {
-                    this.html.render(this.html.renderDataOfApp(dataArray, title, appKey), this.element);
+                data: async (dataArray,creatorData, title, appKey) => {
+                    this.html.render(this.html.renderDataOfApp(dataArray, creatorData, title, appKey), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
                 }
             }
@@ -182,33 +184,52 @@
                     for (const dataset of dataToDelete) {
                         await this.data.store.del(dataset.key)
                     }
+                    await this.refresh()
                     alert("All data deleted")
                 },
                 onShowData: async (appKey) => {
-                    console.log(appKey, " show data")
+                    console.log(appKey, " show data");
 
                     if (!this.user.isLoggedIn()) {
-                        this.removeParams()
-                        await this.refresh()
+                        this.removeParams();
+                        await this.refresh();
+                        return;
                     }
-                    const metaData = await this.fetch.getMetaData(appKey)
 
-                    // fetch data dieser app und render diese auf einer neuen page. url parameter?
-                    const configObject = await this.configs.get({app: appKey})
-                    if(configObject.length === 0){
+                    const metaData = await this.fetch.getMetaData(appKey);
+
+                    // Fetch data of this app and render it on a new page
+                    const configObject = await this.configs.get({ app: appKey });
+                    if (configObject.length === 0) {
                         await this.html.render(this.html.noDataView(), this.element);
-                        return
+                        return;
                     }
-                    // DMS Apps have 2 Keys -->  Key of the App ---- Key of the App in the Collection
-                    const appKeyInCollection = configObject[0].data.key
-                    const collectionName = configObject[0].data.store[1].name
-                    // daten von der app die unter "data" eingebeben wurden
-                    const persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection)
-                    if (persData.length === 0) {
-                        await this.html.render(this.html.noDataView(), this.element);
-                        return
+
+                    let creatorData;
+                    let persData = [];
+
+                    if (configObject[0]._.creator === this.user.getValue().user) {
+                        creatorData = configObject;
                     }
-                    this.render.data(persData, metaData.title, appKey)
+
+                    if (configObject[0].data) {
+                        const appKeyInCollection = configObject[0].data.key;
+                        const collectionName = configObject[0].data.store[1].name;
+
+                        // Fetch data entered under "data" in the app
+                        // DMS Apps have 2 Keys: Key of the App and Key of the App in the Collection
+                        persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection);
+
+                        // If no personal data and creator data is undefined, render noDataView
+                        if (persData.length === 0 && !creatorData) {
+                            await this.html.render(this.html.noDataView(), this.element);
+                            return;
+                        }
+                    }
+
+
+                    await this.render.data(persData, creatorData, metaData.title, appKey);
+
                 },
 
                 onDeleteDataSet: async (key) => {
@@ -232,12 +253,9 @@
                     const data = await this.data.store.get({
                         "_.creator": this.user.getValue().user
                     });
-
                     return data.filter(item => {
                         return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
                     });
-
-
                 },
                 getMetaData: async (appKey) => {
 
