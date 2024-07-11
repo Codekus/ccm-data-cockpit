@@ -146,7 +146,6 @@
                 if ($.params().app) {
                     await this.events.onShowData($.params().app)
                 } else {
-                    debugger
                     this.html.shareAppDatas(await this.fetch.getAppDatas());
                     await this.html.render(this.html.main(), this.element);
                 }
@@ -165,9 +164,13 @@
                 }
             }
             this.events = {
-                onDeleteAllData: async (appKey) => {
+                onDeleteAllData: async (appKey, alertsOn) => {
                     console.log(appKey, " deleted all data")
                     const configObject = await this.configs.get({app: appKey})
+                    if (!configObject[0].data) {
+                        if(alertsOn) alert("No data to delete")
+                        return
+                    }
                     const appKeyInCollection = configObject[0].data.key
                     const collectionName = configObject[0].data.store[1].name
                     this.data.store.name = collectionName;
@@ -178,18 +181,18 @@
                         return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
                     });
                     if (dataToDelete.length === 0) {
-                        alert("No data to delete")
+                        if(alertsOn) alert("No data to delete")
                         return
                     }
                     for (const dataset of dataToDelete) {
                         await this.data.store.del(dataset.key)
                     }
                     await this.refresh()
-                    alert("All data deleted")
+                    if(alertsOn) alert("All data deleted")
                 },
                 onShowData: async (appKey) => {
                     console.log(appKey, " show data");
-
+                    debugger
                     if (!this.user.isLoggedIn()) {
                         this.removeParams();
                         await this.refresh();
@@ -239,6 +242,24 @@
                 onHome: async () => {
                     this.removeParams()
                     await this.refresh()
+                },
+                onProfile: async () => {
+                    debugger
+                    await this.render.data([this.user.getValue()], "", "My profile", this.user.getValue().key);
+                },
+                onDeleteProfile: async () => {
+                    for (const key of appKeys) {
+                        await this.events.onDeleteAllData(key, false)
+                    }
+                    alert("All data deleted")
+                    if(confirm("All app data has been deleted. Do you want to delete your profile?")) {
+                        this.data.store.name = "dms-user"
+                        await this.events.onDeleteDataSet(this.user.getValue().key)
+                        alert("Profile deleted")
+                        await this.user.logout()
+                        await this.refresh()
+                    }
+
                 }
             };
             this.fetch = {
@@ -314,6 +335,8 @@
                 const x = await this.apps.get()
                 const y = await this.components.get()
                 const z = await this.configs.get()
+                this.data.store.name = "dms-user"
+                const a = await this.data.store.get({})
                 debugger
             }
 

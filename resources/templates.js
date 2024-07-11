@@ -15,7 +15,10 @@ export const shareApp = ( _app ) => { app = _app };
 export function main() {
     return html`
     <div class="d-flex justify-content-end">
-      <div id="user"></div>
+        <button class="btn btn-success" @click=${event => {
+            app.events.onProfile();
+        }}>My profile data</button>
+      <div class="mt-2 ml" id="user"></div>
     </div>
     <main class="container">
       <h1 class="display-4 text-center my-4">Data-Cockpit</h1>
@@ -73,9 +76,9 @@ function renderAppCard(appInfo) {
                             <button class="btn btn-primary me-2" @click=${event => {
                                 app.onAppClick(appInfo.key);
                             }}>Show data</button>
-                            <button class="btn btn-danger" @click=${event => {
+                            <button class="btn btn-danger" @click=${() => {
                                 if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
-                                    app.events.onDeleteAllData(appInfo.key);
+                                    app.events.onDeleteAllData(appInfo.key, true);
                                 }
                             }}>Delete all data</button>
                         </div>
@@ -96,7 +99,7 @@ function renderAppCard(appInfo) {
  */
 export function renderDataOfApp(dataArray, creatorData, title, appKey) {
 
-
+    let isProfile = dataArray.length > 0 && (dataArray[0].key === app.user.getValue().key && dataArray[0].token === app.user.getValue().token);
 
     return html`
         <div class="d-flex justify-content-end ">
@@ -106,19 +109,30 @@ export function renderDataOfApp(dataArray, creatorData, title, appKey) {
         <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
             <i class="bi bi-house"></i> Home
         </button>
-        <button @click=${() => {
+        ${!isProfile ? html`<button @click=${() => {
             if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
-                app.events.onDeleteAllData(appKey)
+                app.events.onDeleteAllData(appKey, true)
                 app.refresh()
             }}
-            
+
         } type="button" class="btn btn-danger">
             <i class="bi bi-house"></i> Delete all data
-        </button>
+        </button>` : html`
+            <button @click=${() => {
+                if (confirm("Are you sure you want to delete your profile and all your data? This can't be undone.")) {
+                    if (confirm("Are you really sure?")) {
+                        app.events.onDeleteProfile()
+                    }
+                }
+            }
+            } type="button" class="btn btn-danger">
+                <i class="bi bi-house"></i> Delete profile and all data
+            </button>
+        `}
         <h1 class="mt-3">${title}</h1>
         <div>
             ${creatorData ? renderConfigCard(creatorData[0]) : html``}
-      ${dataArray.map(data => renderAppDataCard(data))}
+      ${dataArray.map(data => renderAppDataCard(data, isProfile))}
     </div>
   `;
 }
@@ -194,7 +208,7 @@ export function renderConfigCard(config) {
 
 
 
-export function renderAppDataCard(appData) {
+export function renderAppDataCard(appData, isProfile) {
     appData = sortObjectByKeys(appData);
 
     const togglePopup = (key) => {
@@ -276,11 +290,11 @@ export function renderAppDataCard(appData) {
                     </tbody>
                 </table>
                 <div class="d-flex">
-                    <button class="btn btn-danger" @click=${event => {
-        if (confirm('Are you sure you want to delete this')) {
-            app.events.onDeleteDataSet(appData.key);
-        }
-    }}>Delete</button>
+                    ${!isProfile ? html`<button class="btn btn-danger" @click=${() => {
+            if (confirm('Are you sure you want to delete this')) {
+                app.events.onDeleteDataSet(appData.key);
+            }
+        }}>Delete</button>` : html``}
                 </div>
             </div>
         </div>
