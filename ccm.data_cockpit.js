@@ -230,7 +230,9 @@
                         }
                     }
 
-
+                  //  const x = persData[0]
+                  //  x._.get = "creator"
+                  //  await this.data.store.set(x)
                     await this.render.data(persData, creatorData, metaData.title, appKey);
 
                 },
@@ -332,11 +334,12 @@
             }
             this.debug = async () => {
                 debugger
-                const x = await this.apps.get()
-                const y = await this.components.get()
-                const z = await this.configs.get()
-                this.data.store.name = "dms-user"
-                const a = await this.data.store.get({})
+             //   const x = await this.apps.get()
+             //   const y = await this.components.get()
+             //   const z = await this.configs.get()
+                this.data.store.name = ""
+                const key_or_query = {$eval: 'db.getMongo().getDBNames()'}
+              //  const a = await this.data.store.get(key_or_query)
                 debugger
             }
 

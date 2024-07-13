@@ -258,7 +258,7 @@ export function renderAppDataCard(appData, isProfile) {
 
     const datasetKey = typeof appData.key === 'string' ? appData.key : appData.key[1];
     const rows = Object.entries(appData).map(([key, value]) => {
-        if (key === 'created_at' || key === 'updated_at' || key === 'key') return '';
+        if (key === 'created_at' || key === 'updated_at' ) return '';
         return html`
             <tr>
                 <th scope="row">${key === "_" ? "Permissions" : key}</th>
