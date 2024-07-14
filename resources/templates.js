@@ -74,7 +74,7 @@ function renderAppCard(appInfo) {
                         <h5 class="card-title">${appInfo.title}</h5>
                         <p class="card-text">${cleanDescription}</p>
                         <div class="d-flex">
-                            <button class="btn btn-primary me-2" @click=${event => {
+                            <button class="btn btn-primary me-2" @click=${() => {
                                 app.onAppClick(appInfo.key);
                             }}>Show data</button>
                             <button class="btn btn-danger" @click=${() => {
