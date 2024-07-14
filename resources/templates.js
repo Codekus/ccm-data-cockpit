@@ -16,7 +16,7 @@ export const shareHelper = ( _$ ) => { $ = _$ };
 export function main() {
     return html`
     <div class="d-flex justify-content-end">
-        <button class="btn btn-success" @click=${event => {
+        <button class="btn btn-success me-4" @click=${event => {
             app.events.onProfile();
         }}>My profile data</button>
       <div class="mt-2 ml" id="user"></div>
