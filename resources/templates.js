@@ -7,10 +7,11 @@
 import { html, render } from './../libs/lit/lit.js';
 export { render };
 
-let appDatas, app;
+let appDatas, app, $;
 
 export const shareAppDatas = ( _appDatas ) => { appDatas = _appDatas };
 export const shareApp = ( _app ) => { app = _app };
+export const shareHelper = ( _$ ) => { $ = _$ };
 
 export function main() {
     return html`
@@ -243,18 +244,29 @@ export function renderAppDataCard(appData, isProfile) {
     const permissions = (permissionsObj) => {
         let flattenedObj = flattenObject(permissionsObj);
         return html`
-            <table class="table">
-                <tbody>
-                    ${Object.entries(flattenedObj).map(([key, value]) => html`
-                    <tr>
-                        <th scope="row">${key}</th>
-                        <td>${renderValue(value)}</td>
-                    </tr>
-                    `)}
-                </tbody>
-            </table>
-        `;
+        <table class="table">
+            <tbody id="permissions-table-${datasetKey}">
+                ${Object.entries(flattenedObj).map(([key, value], index) => html`
+                <tr>
+                    <th scope="row">${key}</th>
+                    <td>
+                        ${isProfile ? html`
+                            <td>${renderValue(value)}</td>
+                        ` : html`
+                            ${key === 'get' || key === 'set' || key === 'del' ? html`
+                        <select id="select-${datasetKey}-${index}" class="form-select" aria-label="Default select example">
+                            <option value="all" ?selected=${value === 'all'}>All</option>
+                            <option value="creator" ?selected=${value === 'creator'}>Creator</option>
+                        </select>
+                        ` : renderValue(value)}`}
+                    </td>
+                </tr>
+                `)}
+            </tbody>
+        </table>
+    `;
     };
+
 
     const datasetKey = typeof appData.key === 'string' ? appData.key : appData.key[1];
     const rows = Object.entries(appData).map(([key, value]) => {
@@ -268,7 +280,19 @@ export function renderAppDataCard(appData, isProfile) {
                         <div id="popup-${datasetKey}" class="card" style="display: none;">
                             <div class="card-body border border-dark">
                                 ${permissions(value)}
-                                <button type="button" class="btn btn-secondary" @click=${() => togglePopup(datasetKey)}>Close</button>
+                                <button type="button" class="btn btn-secondary me-2" @click=${() => togglePopup(datasetKey)}>Close</button>
+                                <button type="button" class="btn btn-success" @click=${async () => {
+                                    const selectGroup = document.querySelectorAll(`#permissions-table-${datasetKey} select`);
+                                    const permission = {
+                                        get: selectGroup[0].value.toLowerCase(),
+                                        set: selectGroup[1].value.toLowerCase(),
+                                        del: selectGroup[2].value.toLowerCase()
+                                    };
+                                    const copyObject = $.clone(appData);
+                                    copyObject._.access = permission;
+                                    await app.events.onChangePermission(copyObject);
+                                    await alert("Permissions changed.")
+                                }}>Save</button>
                             </div>
                         </div>
                     `}

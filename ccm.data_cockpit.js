@@ -113,7 +113,8 @@
                 "1719994026117X18424967169684558", // test comment kless app https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1719994026117X18424967169684558
                 "1720011698695X2920675973648237", // test comment meine ungelistet app https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1720011698695X2920675973648237
                 "1720084530064X2287127424685247", // poll debug app https://ccmjs.github.io/digital-makerspace/app.html?app=live_poll,1720084530064X2287127424685247
-                "1720598582962X08744772963471159"
+                "1720598582962X08744772963471159",
+                "1720950403494X31874311848526005"
             ]
             this.init = async () => {
 
@@ -128,6 +129,7 @@
 
                 $ = Object.assign({}, this.ccm.helper, this.helper);
                 $.use(this.ccm);
+                this.html.shareHelper($);
             };
             this.ready = async () => {
                 window.addEventListener('popstate', this.refresh);
@@ -224,15 +226,12 @@
                         persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection);
 
                         // If no personal data and creator data is undefined, render noDataView
-                        if (persData.length === 0 && !creatorData) {
-                            await this.html.render(this.html.noDataView(), this.element);
-                            return;
-                        }
+                    }
+                    if (persData.length === 0 && !creatorData) {
+                        await this.html.render(this.html.noDataView(), this.element);
+                        return;
                     }
 
-                  //  const x = persData[0]
-                  //  x._.get = "creator"
-                  //  await this.data.store.set(x)
                     await this.render.data(persData, creatorData, metaData.title, appKey);
 
                 },
@@ -247,6 +246,7 @@
                 },
                 onProfile: async () => {
                     debugger
+                    this.data.store.name = "dms-user"
                     await this.render.data([this.user.getValue()], "", "My profile", this.user.getValue().key);
                 },
                 onDeleteProfile: async () => {
@@ -261,7 +261,10 @@
                         await this.user.logout()
                         await this.refresh()
                     }
-
+                },
+                onChangePermission: async (newPermission) => {
+                    await this.data.store.set(newPermission)
+                    await this.refresh()
                 }
             };
             this.fetch = {
@@ -337,8 +340,8 @@
              //   const x = await this.apps.get()
              //   const y = await this.components.get()
              //   const z = await this.configs.get()
-                this.data.store.name = ""
-                const key_or_query = {$eval: 'db.getMongo().getDBNames()'}
+            //    this.data.store.name = ""
+            //    const key_or_query = {$eval: 'db.getMongo().getDBNames()'}
               //  const a = await this.data.store.get(key_or_query)
                 debugger
             }
