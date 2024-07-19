@@ -1,8 +1,8 @@
 'use strict';
 
 /**
- * @overview <i>ccmjs</i>-based web component for a code editor that uses CodeMirrow 5.
- * @author André Kless <andre.kless@web.de> 2023
+ * @overview App configurations of <i>ccmjs</i>-based web component for a data-cockpit
+ * @author Markus Klassen <markusklassen1497@gmail.com> 2024
  * @license The MIT License (MIT)
  */
 
