@@ -39,24 +39,13 @@
             ],
             "data": { // todo (name) ist hier die collection der nosql datenbank --> so erstmal public data
                 store: ["ccm.store", {"name": "dms2-comment-data", "url": "https://ccm2.inf.h-brs.de"}],
-                //  key: "demo" // key worauf die daten gespeichert wruden
             },
-            // "directly": true,
             "helper": ["ccm.load", {"url": "./libs/ccm/helper.js", "type": "module"}],
             "html": ["ccm.load", {"url": "./resources/templates.js", "type": "module"}],
 
             "libs": ["ccm.load",
                 [
-                    "./libs/codemirror/codemirror.js",
                     "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/js/bootstrap.bundle.min.js",
-                    [
-                        "./libs/codemirror/autorefresh.js",
-                        "./libs/codemirror/brace-fold.js",
-                        "./libs/codemirror/closebrackets.js",
-                        "./libs/codemirror/foldcode.js",
-                        "./libs/codemirror/foldgutter.js",
-                        "./libs/codemirror/matchbrackets.js"
-                    ]
                 ]
             ],
 
@@ -82,29 +71,7 @@
 
             "shadow": "none",
             "submit": true,
-            //"text": [],
-            addedTodosStore: {
-                todo: [],
-                key: "todo"
-            },
-            addedTodos: [],
-            basicData: {
-                // mandatory. Der Entwickler setzt nur den Key unter dem dieses Object
-                // gespeichert wird
-                created_at: Date.now(),
-                updated_at: Date.now(),
-                key: "A Key",
-                // actual data here. can be anything
-                message: "this is the text",
-                confirmed: true,
-                _: {
-                    creator: "markla",
-                    realm: "cloud",
-                    get: "all",
-                    set: "all",
-                    del: "all"
-                }
-            }
+
         },
         Instance: function () {
 
