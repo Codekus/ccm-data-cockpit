@@ -281,18 +281,19 @@ export function renderAppDataCard(appData, isProfile) {
                             <div class="card-body border border-dark">
                                 ${permissions(value)}
                                 <button type="button" class="btn btn-secondary me-2" @click=${() => togglePopup(datasetKey)}>Close</button>
-                                <button type="button" class="btn btn-success" @click=${async () => {
-                                    const selectGroup = document.querySelectorAll(`#permissions-table-${datasetKey} select`);
-                                    const permission = {
-                                        get: selectGroup[0].value.toLowerCase(),
-                                        set: selectGroup[1].value.toLowerCase(),
-                                        del: selectGroup[2].value.toLowerCase()
-                                    };
-                                    const copyObject = $.clone(appData);
-                                    copyObject._.access = permission;
-                                    await app.events.onChangePermission(copyObject);
-                                    await alert("Permissions changed.")
-                                }}>Save</button>
+                                ${isProfile ? html`` : html`
+                                    <button type="button" class="btn btn-success" @click=${async () => {
+                                        const selectGroup = document.querySelectorAll(`#permissions-table-${datasetKey} select`);
+                                        const permission = {
+                                            get: selectGroup[0].value.toLowerCase(),
+                                            set: selectGroup[1].value.toLowerCase(),
+                                            del: selectGroup[2].value.toLowerCase()
+                                        };
+                                        const copyObject = $.clone(appData);
+                                        copyObject._.access = permission;
+                                        await app.events.onChangePermission(copyObject);
+                                        await alert("Permissions changed.")
+                                    }}>Save</button>`}
                             </div>
                         </div>
                     `}
