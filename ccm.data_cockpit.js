@@ -89,7 +89,7 @@
                     // set user instance for datastore
                     this.data.user = this.user
                     this.user.onchange = () => {
-                    //    this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
+                        //    this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
                         this.refresh()
                     };
                 }
@@ -127,7 +127,7 @@
                 this.onstart && await this.onstart({instance: this});
             };
             this.render = {
-                data: async (dataArray,creatorData, title, appKey) => {
+                data: async (dataArray, creatorData, title, appKey) => {
                     this.html.render(this.html.renderDataOfApp(dataArray, creatorData, title, appKey), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
                 }
@@ -137,7 +137,7 @@
                     console.log(appKey, " deleted all data")
                     const configObject = await this.configs.get({app: appKey})
                     if (!configObject[0].data) {
-                        if(alertsOn) alert("No data to delete")
+                        if (alertsOn) alert("No data to delete")
                         return
                     }
                     const appKeyInCollection = configObject[0].data.key
@@ -150,14 +150,14 @@
                         return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
                     });
                     if (dataToDelete.length === 0) {
-                        if(alertsOn) alert("No data to delete")
+                        if (alertsOn) alert("No data to delete")
                         return
                     }
                     for (const dataset of dataToDelete) {
                         await this.data.store.del(dataset.key)
                     }
                     await this.refresh()
-                    if(alertsOn) alert("All data deleted")
+                    if (alertsOn) alert("All data deleted")
                 },
                 onShowData: async (appKey) => {
                     console.log(appKey, " show data");
@@ -171,7 +171,7 @@
                     const metaData = await this.fetch.getMetaData(appKey);
 
                     // Fetch data of this app and render it on a new page
-                    const configObject = await this.configs.get({ app: appKey });
+                    const configObject = await this.configs.get({app: appKey});
                     if (configObject.length === 0) {
                         await this.html.render(this.html.noDataView(), this.element);
                         return;
@@ -221,7 +221,7 @@
                         await this.events.onDeleteAllData(key, false)
                     }
                     alert("All data deleted")
-                    if(confirm("All app data has been deleted. Do you want to delete your profile?")) {
+                    if (confirm("All app data has been deleted. Do you want to delete your profile?")) {
                         this.data.store.name = "dms-user"
                         await this.events.onDeleteDataSet(this.user.getValue().key)
                         alert("Profile deleted")
@@ -298,18 +298,18 @@
                 await $.params(Object.assign({app: appKey}), true, true);
                 await this.refresh()
             }
-            this.removeParams =  () => {
+            this.removeParams = () => {
                 const url = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, url);
             }
             this.debug = async () => {
                 debugger
-             //   const x = await this.apps.get()
-             //   const y = await this.components.get()
-             //   const z = await this.configs.get()
-            //    this.data.store.name = ""
-            //    const key_or_query = {$eval: 'db.getMongo().getDBNames()'}
-              //  const a = await this.data.store.get(key_or_query)
+                //   const x = await this.apps.get()
+                //   const y = await this.components.get()
+                //   const z = await this.configs.get()
+                //    this.data.store.name = ""
+                //    const key_or_query = {$eval: 'db.getMongo().getDBNames()'}
+                //  const a = await this.data.store.get(key_or_query)
                 debugger
             }
 
