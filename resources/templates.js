@@ -7,11 +7,13 @@
 import { html, render } from './../libs/lit/lit.js';
 export { render };
 
-let appDatas, app, $;
+let appDatas, app, collections, $;
 
 export const shareAppDatas = ( _appDatas ) => { appDatas = _appDatas };
 export const shareApp = ( _app ) => { app = _app };
 export const shareHelper = ( _$ ) => { $ = _$ };
+
+export const shareCollections = ( _collections ) => { collections = _collections };
 
 export function main() {
     return html`

@@ -81,8 +81,18 @@
                 "1720011698695X2920675973648237", // test comment meine ungelistet app https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1720011698695X2920675973648237
                 "1720084530064X2287127424685247", // poll debug app https://ccmjs.github.io/digital-makerspace/app.html?app=live_poll,1720084530064X2287127424685247
                 "1720598582962X08744772963471159",
-                "1720950403494X31874311848526005"
+                "1720950403494X31874311848526005",
+              //  "1720950403494X31874311848526005" // https://ccmjs.github.io/digital-makerspace/app.html?app=comment,1721827357615X8754038256524665
             ]
+
+            const collections = [
+                "dms2-comment-data",
+                "live_poll_data",
+                "todo",
+                "chat-data",
+            ]
+
+
             this.init = async () => {
 
                 if (this.user) {
@@ -111,10 +121,14 @@
                     return
                 }
 
-                //this.html.share(await this.fetch.getAppDatas(), this);
+
                 if ($.params().app) {
                     await this.events.onShowData($.params().app)
                 } else {
+
+
+                    this.html.shareCollections(await this.fetch.collectionNames())
+
                     this.html.shareAppDatas(await this.fetch.getAppDatas());
                     await this.html.render(this.html.main(), this.element);
                 }
@@ -167,7 +181,7 @@
                         await this.refresh();
                         return;
                     }
-
+                    debugger
                     const metaData = await this.fetch.getMetaData(appKey);
 
                     // Fetch data of this app and render it on a new page
@@ -235,6 +249,95 @@
                 }
             };
             this.fetch = {
+                collectionNames: async () => {
+
+                    // todo vincent API colleciton names
+                    // todo aus den CollectionNames, appInfos holen
+                    // todo unterscheidung DMS und weitere ccm apps
+
+                    // todo datensatz aus this.store.get sortieren und nach app Mappen,
+                   // debugger
+                    const dmsAppDatas = await this.apps.get()
+                    //const configData = await this.configs.get()
+
+
+
+                    const dataConfigs = await this.configs.get({
+                        'data.store.1.name': { $exists: true },
+                        "_": {
+                            $exists: true
+                            // realm: "cloud"
+                        }
+                    });
+
+                    debugger
+                    const hasDmsData = [] // diese apps haben die gleiche collection wie die ich von vincent bekomme
+
+                    dataConfigs.forEach(config => {
+                       // debugger
+
+                        if (collections.includes(config.data.store[1].name)) {
+                            // todo
+                            hasDmsData.push(config)
+                        }
+                    })
+
+                    //todo hasDmsData: jedes element hat das attribut "app", dmsAppData danach filter
+
+                    // in diesen DMS Apps werden Daten gespeichert
+                    const filteredAppData = dmsAppDatas.filter(app => {
+                        return hasDmsData.some(item => {
+                            return item.app === app.app
+                        })
+                    })
+
+                    const mappedData = new Map()
+                    filteredAppData.forEach(app => {
+                        mappedData.set(app.app, {
+                            app: app,
+                            config: hasDmsData.filter(item => {
+                                return item.app === app.app
+                            }),
+                            data: []
+                        })
+                    })
+
+
+
+                    // todo filteredAppData enthält alle DMS apps die daten speichern, jetzt gucken welcher meiner user daten in diesen DMS apps gespeichert sind
+
+                    // hasDmsData filtern mit dem inhalt der collections dann habe ich alle DMS apps wo ich daten hinterlegt habe
+                    debugger
+                    const dmsAppKeyObjects = []
+                    const nonDmsAppKeyObjects = []
+                    for (const collection of collections) {
+
+                        this.data.store.name = collection;
+                        const data = await this.data.store.get({
+                            "_.creator": this.user.getValue().user,
+                            //app: {$exists: true}
+                        });
+
+
+                        for (const dataSet of data) {
+                            if (dataSet.app) {
+                                mappedData.forEach((value, key) => {
+                                    if (value.config[0].data.key === dataSet.app || (Array.isArray(value.config[0].key) && value.config[0].data.key[0] === dataSet.app)){
+                                        value.data.push(dataSet)
+                                    }
+                                })
+                            } else {
+                                nonDmsAppKeyObjects.push(dataSet)
+                            }
+                        }
+                    }
+                    debugger
+
+                    return {
+                        dms: mappedData,
+                        nonDms: nonDmsAppKeyObjects
+                    }
+                },
                 /**
                  *
                  * @param collectionName
@@ -247,7 +350,7 @@
                         "_.creator": this.user.getValue().user
                     });
                     return data.filter(item => {
-                        return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
+                            return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
                     });
                 },
                 getMetaData: async (appKey) => {
