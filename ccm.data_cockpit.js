@@ -90,11 +90,12 @@
                 "live_poll_data",
                 "todo",
                 "chat-data",
+                "debugstore"
             ]
 
 
             this.init = async () => {
-
+                debugger
                 if (this.user) {
                     // set user instance for datastore
                     this.data.user = this.user
@@ -257,10 +258,25 @@
 
                     // todo datensatz aus this.store.get sortieren und nach app Mappen,
                    // debugger
-                    const dmsAppDatas = await this.apps.get()
-                    //const configData = await this.configs.get()
+                  //  const dmsAppDatas = await this.apps.get()
 
 
+                    var startTime, endTime;
+
+                    function start() {
+                        startTime = new Date();
+                    };
+
+                    function end() {
+                        endTime = new Date();
+                        var timeDiff = endTime - startTime; //in ms
+                        // strip the ms
+                       // timeDiff /= 1000;
+
+                        // get seconds
+
+                        console.log(timeDiff + " seconds");
+                    }
 
                     const dataConfigs = await this.configs.get({
                         'data.store.1.name': { $exists: true },
@@ -270,7 +286,15 @@
                         }
                     });
 
-                    debugger
+                    const dataConfigs2 = await this.configs.get({
+                        'data.store.1.name': "todo",
+                        "_": {
+                            $exists: true
+                            // realm: "cloud"
+                        }
+                    });
+
+
                     const hasDmsData = [] // diese apps haben die gleiche collection wie die ich von vincent bekomme
 
                     dataConfigs.forEach(config => {
@@ -283,13 +307,14 @@
                     })
 
                     //todo hasDmsData: jedes element hat das attribut "app", dmsAppData danach filter
-
                     // in diesen DMS Apps werden Daten gespeichert
-                    const filteredAppData = dmsAppDatas.filter(app => {
-                        return hasDmsData.some(item => {
-                            return item.app === app.app
-                        })
+
+                    const filteredAppData = await this.apps.get({
+                        app: {$in: hasDmsData.map(item => item.app)}
                     })
+
+
+
 
                     const mappedData = new Map()
                     filteredAppData.forEach(app => {
@@ -307,7 +332,7 @@
                     // todo filteredAppData enthält alle DMS apps die daten speichern, jetzt gucken welcher meiner user daten in diesen DMS apps gespeichert sind
 
                     // hasDmsData filtern mit dem inhalt der collections dann habe ich alle DMS apps wo ich daten hinterlegt habe
-                    debugger
+
                     const dmsAppKeyObjects = []
                     const nonDmsAppKeyObjects = []
                     for (const collection of collections) {
@@ -327,16 +352,21 @@
                                     }
                                 })
                             } else {
-                                nonDmsAppKeyObjects.push(dataSet)
+                                nonDmsAppKeyObjects.push({
+                                    dataSet: dataSet,
+                                    collection: collection
+
+                                })
                             }
                         }
                     }
                     debugger
-
+                    // todo filter mappedData where data.length > 0
                     return {
-                        dms: mappedData,
+                        dms: Object.fromEntries(Array.from(mappedData).filter(([key, value]) => value.data.length > 0)),
                         nonDms: nonDmsAppKeyObjects
-                    }
+                    };
+
                 },
                 /**
                  *
