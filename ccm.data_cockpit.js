@@ -250,7 +250,7 @@
             };
             this.fetch = {
                 collectionNames: async () => {
-
+                    // todo
                     // todo vincent API colleciton names
                     // todo aus den CollectionNames, appInfos holen
                     // todo unterscheidung DMS und weitere ccm apps
