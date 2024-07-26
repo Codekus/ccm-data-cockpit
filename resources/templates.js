@@ -70,7 +70,7 @@ function dmsDataCard(dmsDataObject) {
     const isOwner = dmsDataObject.app._.creator === app.user.getValue().user;
 
     const title = dmsDataObject.app.title;
-    const description = dmsDataObject.app.description.replace(/<[^>]+(>|$)/g, "");
+    const description = dmsDataObject.app.subject.replace(/<[^>]+(>|$)/g, "");
     const img = dmsDataObject.app.icon;
 
     return html`
