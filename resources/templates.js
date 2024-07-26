@@ -43,10 +43,8 @@ export function main() {
 
         </div>
         <main class="container">
-            <h1 class="display-1 text-center my-5 fw-bold">Data-Cockpit</h1>
-
+            <h1 class="display-1 text-center fw-bold">Data-Cockpit</h1>
             <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
-            <h2 class="display-4 text-center my-4">Data from DMS apps</h2>
             <div id="apps-container" class="row justify-content-center">
                 ${dmsData(collections.dms)}
             </div>
@@ -61,7 +59,6 @@ export function main() {
 }
 
 export function dmsData(dmsDataObject) {
-    // todo: wenn ich creator bin, dann render auch config + app, sonst nur data
     return html`
         ${Object.entries(dmsDataObject).map(([key, value]) => dmsDataCard(value))}
     `;
@@ -77,12 +74,12 @@ function dmsDataCard(dmsDataObject) {
     const img = dmsDataObject.app.icon;
 
     return html`
-        <div class="card mb-3 p-2">
+        <div class="card mb-3 p-2 mx-auto" style="max-width: 600px;">
             <div class="row g-3">
-                <div class="col-md-2">
+                <div class="col-4">
                     <img src="${img}" class="img-fluid w-100 h-100" alt="${title}">
                 </div>
-                <div class="col-md-10">
+                <div class="col-8">
                     <div class="card-body">
                         <h5 class="card-title">${title}</h5>
                         <p class="card-text">${description}</p>
@@ -98,6 +95,7 @@ function dmsDataCard(dmsDataObject) {
             </div>
         </div>
     `;
+
 }
 
 export function nonDmsData(nonDmsData) {
@@ -113,15 +111,14 @@ function nonDmsDataCard(nonDmsDataObject, collection) {
     const title = collection
 
     return html`
-        <div class="card mb-3 p-2">
+        <div class="card mb-3 p-2 mx-auto" style="max-width: 600px;">
             <div class="row g-3">
-                <div class="col-md-2">
+                <div class="col-4">
                     <img src="https://ccmjs.github.io/akless-components/live_poll/resources/icon.svg" class="img-fluid w-100 h-100" alt="${title}">
                 </div>
-                <div class="col-md-10">
+                <div class="col-8">
                     <div class="card-body">
-                        <h5 class="card-title
-                        ">Collection name: ${title}</h5>
+                        <h5 class="card-title">Collection name: ${title}</h5>
                         <div class="d-flex">
                             ${showDeleteButtons(() => {
                                 app.events.onShowNonDMSData(collection)
@@ -134,6 +131,7 @@ function nonDmsDataCard(nonDmsDataObject, collection) {
             </div>
         </div>
     `;
+
 }
 
 
