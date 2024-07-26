@@ -16,21 +16,142 @@ export const shareHelper = ( _$ ) => { $ = _$ };
 export const shareCollections = ( _collections ) => { collections = _collections };
 
 export function main() {
+    let infoVisible = false;
+
+    const toggleInfo = () => {
+        infoVisible = !infoVisible;
+        document.getElementById('info-box').hidden = !infoVisible;
+    };
+
     return html`
-    <div class="d-flex justify-content-end">
-        <button class="btn btn-success me-4" @click=${event => {
-            app.events.onProfile();
-        }}>My profile data</button>
-      <div class="mt-2 ml" id="user"></div>
-    </div>
-    <main class="container">
-      <h1 class="display-4 text-center my-4">Data-Cockpit</h1>
-      <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
-      <div id="apps-container" class="row justify-content-center">
-        ${appDatas.map(appInfo => html`<div class="col-md-8">${renderAppCard(appInfo)}</div>`)}
-      </div>
-    </main>
-  `;
+        <div class="d-flex justify-content-end">
+            <button class="btn btn-success me-4" @click=${async () => {
+                await app.events.onProfile();
+            }}>My profile data</button>
+            <button class="btn btn-secondary me-4" @click=${async () => {
+                await app.events.onRefreshClick();
+                alert("Data refreshed.")
+            }}>Refresh data</button>
+            <button class="btn btn-info me-4" @click=${toggleInfo}>Information</button>
+            <div class="mt-2 ml" id="user"></div>
+        </div>
+        <div id="info-box" class="info-box p-3 mb-3 bg-light border rounded" hidden>
+            <h4>Information</h4>
+            <p>This Data-Cockpit shows data you created in Digital Makerspace apps and other ccm-based apps.</p>
+            <p>ccm-based apps save data in MongoDB collections. Each collection contains user-created data. Data that doesn't belong to a DMS app will appear below.</p>
+            <p>Press "Information" again to close this box.</p>
+
+        </div>
+        <main class="container">
+            <h1 class="display-1 text-center my-5 fw-bold">Data-Cockpit</h1>
+
+            <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
+            <h2 class="display-4 text-center my-4">Data from DMS apps</h2>
+            <div id="apps-container" class="row justify-content-center">
+                ${dmsData(collections.dms)}
+            </div>
+            <h2 class="display-4 text-center my-4">Data from other ccm-based Apps</h2>
+            <p class="lead text-muted text-center">These data stores contain data from the database collections.
+                Data from these stores, do not belong to an app from the Digital Makerspace</p>
+            <div id="apps-container-other" class="row justify-content-center">
+                ${nonDmsData(collections.nonDms)}
+            </div>
+        </main>
+    `;
+}
+
+export function dmsData(dmsDataObject) {
+    // todo: wenn ich creator bin, dann render auch config + app, sonst nur data
+    return html`
+        ${Object.entries(dmsDataObject).map(([key, value]) => dmsDataCard(value))}
+    `;
+}
+
+
+function dmsDataCard(dmsDataObject) {
+    // if true -> render config + app, else only data
+    const isOwner = dmsDataObject.app._.creator === app.user.getValue().user;
+
+    const title = dmsDataObject.app.title;
+    const description = dmsDataObject.app.description.replace(/<[^>]+(>|$)/g, "");
+    const img = dmsDataObject.app.icon;
+
+    return html`
+        <div class="card mb-3 p-2">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <img src="${img}" class="img-fluid w-100 h-100" alt="${title}">
+                </div>
+                <div class="col-md-10">
+                    <div class="card-body">
+                        <h5 class="card-title">${title}</h5>
+                        <p class="card-text">${description}</p>
+                        <div class="d-flex">
+                            ${showDeleteButtons(() => {
+                                app.events.onShowDMSData(dmsDataObject)
+                            }, () => {
+                                app.events.onDeleteAllData(dmsDataObject, true)
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+export function nonDmsData(nonDmsData) {
+
+    return html`
+        ${Object.entries(nonDmsData).map(([key, value]) => nonDmsDataCard(value, key))}
+    `
+
+}
+
+function nonDmsDataCard(nonDmsDataObject, collection) {
+    // todo diese Karten haben nur einen Titel und Buttons
+    const title = collection
+
+    return html`
+        <div class="card mb-3 p-2">
+            <div class="row g-3">
+                <div class="col-md-2">
+                    <img src="https://ccmjs.github.io/akless-components/live_poll/resources/icon.svg" class="img-fluid w-100 h-100" alt="${title}">
+                </div>
+                <div class="col-md-10">
+                    <div class="card-body">
+                        <h5 class="card-title
+                        ">Collection name: ${title}</h5>
+                        <div class="d-flex">
+                            ${showDeleteButtons(() => {
+                                app.events.onShowNonDMSData(collection)
+                            }, () => {
+                                app.events.onDeleteAllData({data: nonDmsDataObject}, true)
+                            })}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+
+
+
+
+
+function showDeleteButtons(showFunction, deleteFunction) {
+    return html`
+        <button class="btn btn-primary me-2" @click=${() => {
+            showFunction();
+        }}>Show data</button>
+        <button class="btn btn-danger" @click=${() => {
+            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                deleteFunction();
+            }
+        }}>Delete all data</button>
+    `
 }
 
 
@@ -51,47 +172,6 @@ export function mainLogin() {
 }
 
 
-
-
-
-
-function renderAppCard(appInfo) {
-    /*
-    appInfo: {
-        title: "",
-        description: "" // description = subject beim dms
-        img: meta.icon || dms.icon
-        key: ""
-    }
-     */
-    const cleanDescription = appInfo.description.replace(/<[^>]+(>|$)/g, "");
-    return html`
-        <div class="card mb-3 p-2">
-            <div class="row g-3">
-                <div class="col-md-2">
-                    <img src="${appInfo.img}" class="img-fluid w-100 h-100" alt="${appInfo.title}">
-                </div>
-                <div class="col-md-10">
-                    <div class="card-body">
-                        <h5 class="card-title">${appInfo.title}</h5>
-                        <p class="card-text">${cleanDescription}</p>
-                        <div class="d-flex">
-                            <button class="btn btn-primary me-2" @click=${() => {
-                                app.onAppClick(appInfo.key);
-                            }}>Show data</button>
-                            <button class="btn btn-danger" @click=${() => {
-                                if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
-                                    app.events.onDeleteAllData(appInfo.key, true);
-                                }
-                            }}>Delete all data</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-}
-
 /**
  *
  * @param dataArray array of data objects
@@ -100,47 +180,57 @@ function renderAppCard(appInfo) {
  * @param appKey appkey of dataset in collection
  * @returns {TemplateResult}
  */
-export function renderDataOfApp(dataArray, creatorData, title, appKey) {
+export function renderDataOfApp(dataArray, title, configObject) {
 
-    let isProfile = dataArray.length > 0 && (dataArray[0].key === app.user.getValue().key && dataArray[0].token === app.user.getValue().token);
+    let isProfile = title === "My profile"
 
     return html`
         <div class="d-flex justify-content-end ">
             <div id="user"></div>
         </div>
-        
-        <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
-            <i class="bi bi-house"></i> Home
-        </button>
-        ${!isProfile ? html`<button @click=${() => {
-            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
-                app.events.onDeleteAllData(appKey, true)
-                app.refresh()
-            }}
 
-        } type="button" class="btn btn-danger">
-            <i class="bi bi-house"></i> Delete all data
-        </button>` : html`
-            <button @click=${() => {
-                if (confirm("Are you sure you want to delete your profile and all your data? This can't be undone.")) {
-                    if (confirm("Are you really sure?")) {
-                        app.events.onDeleteProfile()
-                    }
-                }
-            }
-            } type="button" class="btn btn-danger">
-                <i class="bi bi-house"></i> Delete profile and all data
+        <div class="d-flex gap-2">
+            <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
+                <i class="bi bi-house"></i> Home
             </button>
-        `}
+            <button class="btn btn-secondary" @click=${async () => {
+                await app.events.onRefreshClick();
+                alert("Data refreshed.")
+            }}>Refresh data</button>
+            ${!isProfile ? html`
+                <button @click=${() => {
+                    if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                        app.events.onDeleteAllData(dataArray, true)
+                        app.refresh()
+                    }}
+                } type="button" class="btn btn-danger">
+                    <i class="bi bi-house"></i> Delete all data
+                </button>
+            ` : html`
+                <button @click=${() => {
+                    if (confirm("Are you sure you want to delete your profile and all your data? This can't be undone.")) {
+                        if (confirm("Are you really sure?")) {
+                            app.events.onDeleteProfile()
+                        }
+                    }
+                }} type="button" class="btn btn-danger">
+                    <i class="bi bi-house"></i> Delete profile and all data
+                </button>
+            `}
+        </div>
+
+
+
         <h1 class="mt-3">${title}</h1>
         <div>
-            ${creatorData ? renderConfigCard(creatorData[0]) : html``}
-      ${dataArray.map(data => renderAppDataCard(data, isProfile))}
+            ${configObject ? renderConfigCard(configObject.config, "config", "Configuration details", "Configuration settings for this application:") : html``}
+            ${configObject ? renderConfigCard(configObject.app, "app", "App details", "App settings for this application:") : html``}
+      ${dataArray.data.map(data => renderAppDataCard(data, isProfile))}
     </div>
   `;
 }
 
-export function renderConfigCard(config) {
+export function renderConfigCard(config, id, title, description) {
     // Recursive function to render nested objects
     function renderValue(value) {
         if (typeof value === 'object' && value !== null) {
@@ -164,7 +254,7 @@ export function renderConfigCard(config) {
         }
     }
     const togglePopup = (event) => {
-        const popup = document.getElementById('config');
+        const popup = document.getElementById(id);
         if (!popup) return;
 
         const isHidden = popup.style.display === 'none';
@@ -177,8 +267,8 @@ export function renderConfigCard(config) {
         <div class="card mt-3 mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h5>Configuration Details</h5>
-                    <p>Configuration settings for this application:</p>
+                    <h5>${title}</h5>
+                    <p>${description}</p>
 
                 </div>
                 <button class="btn btn-primary" @click=${event => {
@@ -187,7 +277,7 @@ export function renderConfigCard(config) {
             </div>
         </div>
 
-        <div id="config" class="card-body" style="display: none">
+        <div id=${id} class="card-body" style="display: none">
                 <table class="table">
                     <tbody>
                         ${Object.entries(config).map(([key, value]) => {
@@ -293,7 +383,8 @@ export function renderAppDataCard(appData, isProfile) {
                                         };
                                         const copyObject = $.clone(appData);
                                         copyObject._.access = permission;
-                                        await app.events.onChangePermission(copyObject);
+                                        delete copyObject.__collectionName__
+                                        await app.events.onChangePermission(copyObject, appData.__collectionName__);
                                         await alert("Permissions changed.")
                                     }}>Save</button>`}
                             </div>
@@ -317,9 +408,9 @@ export function renderAppDataCard(appData, isProfile) {
                     </tbody>
                 </table>
                 <div class="d-flex">
-                    ${!isProfile ? html`<button class="btn btn-danger" @click=${() => {
+                    ${!isProfile ? html`<button class="btn btn-danger" @click=${async () => {
             if (confirm('Are you sure you want to delete this')) {
-                app.events.onDeleteDataSet(appData.key);
+                await app.events.onDeleteDataSet(appData.key, appData.__collectionName__);
             }
         }}>Delete</button>` : html``}
                 </div>
@@ -351,14 +442,6 @@ export function noDataView() {
 }
 
 
-function renderRights(dataObject) {
-    return html`
-    <div>
-      ${dataObject.map(data => renderAppDataCard(data))}
-    </div>
-            
-  `;
-}
 
 function flattenObject(obj, parent = '', res = {}) {
     for (let key in obj) {
@@ -384,3 +467,4 @@ function sortObjectByKeys(obj) {
         return result;
     }, {});
 }
+

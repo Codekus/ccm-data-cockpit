@@ -6,6 +6,7 @@
  * @license The MIT License (MIT)
  */
 
+
 (() => {
 
     const component = {
@@ -71,6 +72,7 @@
 
             "shadow": "none",
             "submit": true,
+            userData: undefined
 
         },
         Instance: function () {
@@ -95,12 +97,11 @@
 
 
             this.init = async () => {
-                debugger
+
                 if (this.user) {
                     // set user instance for datastore
                     this.data.user = this.user
                     this.user.onchange = () => {
-                        //    this.element.querySelector("#name").innerText = this.user.isLoggedIn() ? this.user.getUsername() : this.name;
                         this.refresh()
                     };
                 }
@@ -110,12 +111,18 @@
                 this.html.shareHelper($);
             };
             this.ready = async () => {
-                window.addEventListener('popstate', this.refresh);
+                window.addEventListener('popstate', async () => {
+                   await this.refresh()
+                });
+
                 this.onready && await this.onready({instance: this});
             };
             this.start = async () => {
                 this.html.shareApp(this);
                 if (!this.user.isLoggedIn()) {
+                    // destroy userData if user is not logged in
+                    // this prevents previous users data from being displayed
+                    this.userData = undefined
                     this.removeParams()
                     this.html.render(this.html.mainLogin(), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
@@ -123,103 +130,62 @@
                 }
 
 
-                if ($.params().app) {
-                    await this.events.onShowData($.params().app)
+                if ($.params().app || $.params().ccm) {
+                    await this.refresh()
                 } else {
-
-
-                    this.html.shareCollections(await this.fetch.collectionNames())
-
-                    this.html.shareAppDatas(await this.fetch.getAppDatas());
+                    // if userdata was already loaded, dont load it again
+                    if (!this.userData) {
+                        await this.fetch.setUserData()
+                    }
                     await this.html.render(this.html.main(), this.element);
                 }
                 await this.element.querySelector("#user").appendChild(this.user.root);
 
-
-                // data = await $.dataset( this.data );
-
-
                 this.onstart && await this.onstart({instance: this});
             };
             this.render = {
-                data: async (dataArray, creatorData, title, appKey) => {
-                    this.html.render(this.html.renderDataOfApp(dataArray, creatorData, title, appKey), this.element);
+                dmsData: async (data) => {
+                    if (data.app._.creator !== this.user.getValue().user) {
+                        // User is not creator of app, render data without app configs
+                        this.html.render(this.html.renderDataOfApp(data, data.title), this.element);
+                    } else {
+                        // user is owner of app, render data with app configs
+                        this.html.render(this.html.renderDataOfApp(data, data.title, {app: data.app, config:data.config}), this.element);
+                    }
+                    await this.element.querySelector("#user").appendChild(this.user.root);
+                },
+                nonDmsData: async (data, title) => {
+                    this.html.render(this.html.renderDataOfApp({data: data}, title), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
                 }
+
+
+
             }
             this.events = {
-                onDeleteAllData: async (appKey, alertsOn) => {
-                    console.log(appKey, " deleted all data")
-                    const configObject = await this.configs.get({app: appKey})
-                    if (!configObject[0].data) {
-                        if (alertsOn) alert("No data to delete")
-                        return
-                    }
-                    const appKeyInCollection = configObject[0].data.key
-                    const collectionName = configObject[0].data.store[1].name
-                    this.data.store.name = collectionName;
-                    const data = await this.data.store.get({
-                        "_.creator": this.user.getValue().user
-                    });
-                    const dataToDelete = data.filter(item => {
-                        return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
-                    });
-                    if (dataToDelete.length === 0) {
-                        if (alertsOn) alert("No data to delete")
-                        return
-                    }
-                    for (const dataset of dataToDelete) {
+                onShowDMSData: async (dataSet) => {
+                    // set app id as URL parameter
+                    await $.params(Object.assign({app: dataSet.app.app}), true, true);
+                    await this.refresh()
+                },
+                onShowNonDMSData: async (collection) => {
+                    // set collection name as URL parameter
+                    await $.params(Object.assign({ccm: collection}), true, true);
+                    await this.refresh()
+                },
+                onDeleteAllData: async (dataSetArray, alertsOn) => {
+                    for (const dataset of dataSetArray.data) {
+                        this.data.store.name = dataset.__collectionName__
                         await this.data.store.del(dataset.key)
                     }
+                    await this.fetch.setUserData()
                     await this.refresh()
                     if (alertsOn) alert("All data deleted")
                 },
-                onShowData: async (appKey) => {
-                    console.log(appKey, " show data");
-                    debugger
-                    if (!this.user.isLoggedIn()) {
-                        this.removeParams();
-                        await this.refresh();
-                        return;
-                    }
-                    debugger
-                    const metaData = await this.fetch.getMetaData(appKey);
-
-                    // Fetch data of this app and render it on a new page
-                    const configObject = await this.configs.get({app: appKey});
-                    if (configObject.length === 0) {
-                        await this.html.render(this.html.noDataView(), this.element);
-                        return;
-                    }
-
-                    let creatorData;
-                    let persData = [];
-
-                    if (configObject[0]._.creator === this.user.getValue().user) {
-                        creatorData = configObject;
-                    }
-
-                    if (configObject[0].data) {
-                        const appKeyInCollection = configObject[0].data.key;
-                        const collectionName = configObject[0].data.store[1].name;
-
-                        // Fetch data entered under "data" in the app
-                        // DMS Apps have 2 Keys: Key of the App and Key of the App in the Collection
-                        persData = await this.fetch.getpersonalData(collectionName, appKeyInCollection);
-
-                        // If no personal data and creator data is undefined, render noDataView
-                    }
-                    if (persData.length === 0 && !creatorData) {
-                        await this.html.render(this.html.noDataView(), this.element);
-                        return;
-                    }
-
-                    await this.render.data(persData, creatorData, metaData.title, appKey);
-
-                },
-
-                onDeleteDataSet: async (key) => {
+                onDeleteDataSet: async (key, collection) => {
+                    this.data.store.name = collection
                     this.data.store.del(key)
+                    await this.fetch.setUserData()
                     await this.refresh()
                 },
                 onHome: async () => {
@@ -227,57 +193,53 @@
                     await this.refresh()
                 },
                 onProfile: async () => {
-                    debugger
-                    this.data.store.name = "dms-user"
-                    await this.render.data([this.user.getValue()], "", "My profile", this.user.getValue().key);
+                    await this.render.nonDmsData([this.user.getValue()], "My profile")
                 },
                 onDeleteProfile: async () => {
-                    for (const key of appKeys) {
-                        await this.events.onDeleteAllData(key, false)
+                    const obj = this.userData.dms
+                    const obj2 = this.userData.nonDms
+                    for (const key in obj) {
+                        await this.events.onDeleteAllData(obj[key], false)
                     }
+
+                    for (const key in obj2) {
+                        await this.events.onDeleteAllData({data: obj2[key]}, false)
+                    }
+
+
                     alert("All data deleted")
                     if (confirm("All app data has been deleted. Do you want to delete your profile?")) {
-                        this.data.store.name = "dms-user"
-                        await this.events.onDeleteDataSet(this.user.getValue().key)
+                        await this.events.onDeleteDataSet(this.user.getValue().key, "dms-user")
                         alert("Profile deleted")
                         await this.user.logout()
                         await this.refresh()
                     }
                 },
-                onChangePermission: async (newPermission) => {
+                onChangePermission: async (newPermission, collectionName) => {
+                    this.data.store.name = collectionName
                     await this.data.store.set(newPermission)
+                    await this.fetch.setUserData()
+                    await this.refresh()
+                },
+                onRefreshClick: async () => {
+                    await this.fetch.setUserData()
                     await this.refresh()
                 }
             };
             this.fetch = {
+                setUserData: async () => {
+                        this.userData = await this.fetch.collectionNames()
+                        this.html.shareCollections(this.userData)
+
+                },
+                /**
+                 * Fetches all collections from the database
+                 * Map all Datasets to a DMS app or nonDMS app
+                 * @returns {Promise<{nonDms: {app: {}, config: {}, data: []}, dms: {}>}
+                 */
                 collectionNames: async () => {
-                    // todo
-                    // todo vincent API colleciton names
-                    // todo aus den CollectionNames, appInfos holen
-                    // todo unterscheidung DMS und weitere ccm apps
 
-                    // todo datensatz aus this.store.get sortieren und nach app Mappen,
-                   // debugger
-                  //  const dmsAppDatas = await this.apps.get()
-
-
-                    var startTime, endTime;
-
-                    function start() {
-                        startTime = new Date();
-                    };
-
-                    function end() {
-                        endTime = new Date();
-                        var timeDiff = endTime - startTime; //in ms
-                        // strip the ms
-                       // timeDiff /= 1000;
-
-                        // get seconds
-
-                        console.log(timeDiff + " seconds");
-                    }
-
+                    // find DMS app configs that store data
                     const dataConfigs = await this.configs.get({
                         'data.store.1.name': { $exists: true },
                         "_": {
@@ -285,23 +247,10 @@
                             // realm: "cloud"
                         }
                     });
-
-                    const dataConfigs2 = await this.configs.get({
-                        'data.store.1.name': "todo",
-                        "_": {
-                            $exists: true
-                            // realm: "cloud"
-                        }
-                    });
-
-
                     const hasDmsData = [] // diese apps haben die gleiche collection wie die ich von vincent bekomme
 
                     dataConfigs.forEach(config => {
-                       // debugger
-
                         if (collections.includes(config.data.store[1].name)) {
-                            // todo
                             hasDmsData.push(config)
                         }
                     })
@@ -327,14 +276,10 @@
                         })
                     })
 
-
-
-                    // todo filteredAppData enthält alle DMS apps die daten speichern, jetzt gucken welcher meiner user daten in diesen DMS apps gespeichert sind
-
-                    // hasDmsData filtern mit dem inhalt der collections dann habe ich alle DMS apps wo ich daten hinterlegt habe
-
-                    const dmsAppKeyObjects = []
-                    const nonDmsAppKeyObjects = []
+                    // find user created data from each collection and map it to a DMS app or nonDMS app
+                    // nonDMS data will be mapped to the collection its in
+                    // dms data will be mapped the the App ID it belongs to
+                    const nonDmsAppKeyObjects = new Map()
                     for (const collection of collections) {
 
                         this.data.store.name = collection;
@@ -345,92 +290,96 @@
 
 
                         for (const dataSet of data) {
+                            let isPartOfDmsApp = false;
                             if (dataSet.app) {
                                 mappedData.forEach((value, key) => {
                                     if (value.config[0].data.key === dataSet.app || (Array.isArray(value.config[0].key) && value.config[0].data.key[0] === dataSet.app)){
+                                        dataSet.__collectionName__ = collection
                                         value.data.push(dataSet)
+                                        isPartOfDmsApp = true;
                                     }
                                 })
+                                // if an app has "app" property but is not part of DMS app
+                                if (!isPartOfDmsApp) {
+                                    dataSet.__collectionName__ = collection
+                                    if(nonDmsAppKeyObjects.has(collection)) {
+                                        nonDmsAppKeyObjects.get(collection).push(dataSet)
+                                    } else {
+                                        nonDmsAppKeyObjects.set(collection, [dataSet])
+                                    }
+                                }
                             } else {
-                                nonDmsAppKeyObjects.push({
-                                    dataSet: dataSet,
-                                    collection: collection
+                                dataSet.__collectionName__ = collection
+                                if(nonDmsAppKeyObjects.has(collection)) {
+                                    nonDmsAppKeyObjects.get(collection).push(dataSet)
+                                } else {
+                                    nonDmsAppKeyObjects.set(collection, [dataSet])
+                                }
 
-                                })
                             }
                         }
                     }
-                    debugger
-                    // todo filter mappedData where data.length > 0
+
+                    // find apps that the user created
+                    const dataConfigsCreator = await this.configs.get({
+                        "_.creator": this.user.getValue().user,
+                    });
+                    const dataAppsCreator = await this.apps.get({
+                        "_.creator": this.user.getValue().user,
+                    })
+                    const creatorMapped = new Map()
+                    // map configs to apps
+                    dataConfigsCreator.forEach(config => {
+                        if (dataAppsCreator.find(app => app.app === config.app)) {
+                            creatorMapped.set(config.app, {
+                                app: dataAppsCreator.find(app => app.app === config.app),
+                                config: config,
+                                data: []
+                            })
+                        }
+                    });
+
+                    // remove empty data objects
+                    const dms = Object.fromEntries(Array.from(mappedData).filter(([key, value]) => value.data.length > 0))
+
+                    // if creatorMapped data is not in dms then add it dms
+                    creatorMapped.forEach((value, key) => {
+                        if (!dms[key]) {
+                            dms[key] = value
+                        }
+                    })
+
                     return {
-                        dms: Object.fromEntries(Array.from(mappedData).filter(([key, value]) => value.data.length > 0)),
-                        nonDms: nonDmsAppKeyObjects
+                        dms: dms,
+                        nonDms: Object.fromEntries(nonDmsAppKeyObjects)
                     };
 
-                },
-                /**
-                 *
-                 * @param collectionName
-                 * @param appKeyInCollection
-                 * @returns {Promise<*>}
-                 */
-                getpersonalData: async (collectionName, appKeyInCollection) => {
-                    this.data.store.name = collectionName;
-                    const data = await this.data.store.get({
-                        "_.creator": this.user.getValue().user
-                    });
-                    return data.filter(item => {
-                            return item.key === appKeyInCollection || (Array.isArray(item.key) && item.key[0] === appKeyInCollection);
-                    });
-                },
-                getMetaData: async (appKey) => {
-
-                    const appInfo = await this.apps.get({app: appKey});
-                    if (appInfo.length === 0) {
-                        return {
-                            title: "No Data",
-                            description: "No Data",
-                            icon: "",
-                            key: ""
-                        }
-                    }
-                    let obj = {
-                        title: appInfo[0].title,
-                        description: appInfo[0].description, // description = subject beim dms
-                        img: appInfo[0].icon, //meta.icon || dms.icon
-                        key: appKey
-                    }
-                    return obj
-                },
-                getAppDatas: async () => {
-                    // todo Vincent API endpoint call hier um alle apps zu bekommen
-                    const metaDataArr = [];
-                    for (const key of appKeys) {
-                        const m = await this.fetch.getMetaData(key)
-                        metaDataArr.push(await this.fetch.getMetaData(key))
-                    }
-                    return metaDataArr
-
                 }
+
             }
             this.refresh = async () => {
 
-                // todo get url parameters
-                // paremeters: app
-                // wenn kein parameter dann render main, also this.start
-                // wenn app parameter dann render data von dieser app also this.events.onShowData(app)
-
+                if (!this.userData) {
+                    await this.fetch.setUserData()
+                }
                 const params = $.params();
                 if (params.app) {
-                    await this.events.onShowData(params.app)
-                } else {
+                    if (!this.userData.dms[params.app]) {
+                        await this.html.render(this.html.noDataView(), this.element);
+                        return;
+                    }
+                    await this.render.dmsData(this.userData.dms[params.app])
+                } else if(params.ccm) {
+                    if (!this.userData.nonDms[params.ccm]) {
+                        await this.html.render(this.html.noDataView(), this.element);
+                        return;
+                    }
+                    await this.render.nonDmsData(this.userData.nonDms[params.ccm], params.ccm)
+                }else {
                     await this.start()
                 }
             }
-            this.onAppClick = async (appKey) => {
-                await $.params(Object.assign({app: appKey}), true, true);
-                await this.refresh()
-            }
+
             this.removeParams = () => {
                 const url = window.location.origin + window.location.pathname;
                 window.history.replaceState({}, document.title, url);
