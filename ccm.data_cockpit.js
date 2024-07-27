@@ -11,7 +11,7 @@
 
     const component = {
         name: 'data_cockpit',
-        ccm: './libs/ccm/ccm.js',
+        ccm: './libs/ccm/ccm-27.5.0.js',
         config: {
             name: "World",
             "apps": ["ccm.store", {"url": "https://ccm2.inf.h-brs.de", "name": "dms2-apps"}],
