@@ -11,7 +11,7 @@
 
     const component = {
         name: 'data_cockpit',
-        ccm: './libs/ccm/ccm-27.5.0.js',
+        ccm: 'https://codekus.github.io/ccm-data-cockpit/libs/ccm/ccm-27.5.0.js',
         config: {
             name: "World",
             "apps": ["ccm.store", {"url": "https://ccm2.inf.h-brs.de", "name": "dms2-apps"}],
@@ -35,14 +35,14 @@
                         "url": "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/css/bootstrap-fonts.min.css",
                         "context": "head"
                     },
-                    "./resources/styles.css"
+                    "https://codekus.github.io/ccm-data-cockpit/resources/styles.css"
                 ]
             ],
             "data": { // todo (name) ist hier die collection der nosql datenbank --> so erstmal public data
                 store: ["ccm.store", {"name": "dms2-comment-data", "url": "https://ccm2.inf.h-brs.de"}],
             },
-            "helper": ["ccm.load", {"url": "./libs/ccm/helper.js", "type": "module"}],
-            "html": ["ccm.load", {"url": "./resources/templates.js", "type": "module"}],
+            "helper": ["ccm.load", {"url": "https://codekus.github.io/ccm-data-cockpit/libs/ccm/helper.js", "type": "module"}],
+            "html": ["ccm.load", {"url": "https://codekus.github.io/ccm-data-cockpit/resources/templates.js", "type": "module"}],
 
             "libs": ["ccm.load",
                 [
