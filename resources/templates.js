@@ -161,8 +161,8 @@ export function mainLogin() {
     <main class="container d-flex flex-column justify-content-center align-items-center vh-100">
       <div class="card shadow-lg p-4">
         <div class="card-body">
-          <h1 class="card-title text-center mb-4">Welcome</h1>
-          <p class="lead text-center text-muted">Login to view your data of Digital Makerspace apps here.</p>
+          <h1 data-lang="title_welcome" class="card-title text-center mb-4">${app.en.title_welcome}</h1>
+          <p data-lang="text_login" class="lead text-center text-muted">${app.en.text_login}</p>
         </div>
       </div>
     </main>
@@ -428,8 +428,8 @@ export function noDataView() {
     <main class="container d-flex flex-column justify-content-center align-items-center vh-100">
       <div class="card shadow-lg p-4">
         <div class="card-body">
-          <h1 class="card-title text-center mb-4">No data found</h1>
-          <p class="lead text-center text-muted">You don't have any data connected to this app.</p>
+          <h1 data-lang="title_no_data" class="card-title text-center mb-4">${app.en.title_no_data}</h1>
+          <p data-lang="text_no_data" class="lead text-center text-muted">${app.en.text_no_data}</p>
           <div class="d-flex justify-content-center">
             <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary text-center">
               <i class="bi bi-house"></i> Home

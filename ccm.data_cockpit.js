@@ -20,7 +20,11 @@ const de = {
     "title_data_cockpit": "Daten-Cockpit",
     "text_description": "Hier können Sie Ihre Daten der Digital Makerspace Apps einsehen.",
     "title_other_ccm_data": "Daten von anderen ccm-basierten Apps",
-    "text_other_description": "Diese Datenstores enthalten Daten aus den Datenbankkollektionen. Daten aus diesen Stores gehören nicht zu einer App aus dem Digital Makerspace"
+    "text_other_description": "Diese Datenstores enthalten Daten aus den Datenbankkollektionen. Daten aus diesen Stores gehören nicht zu einer App aus dem Digital Makerspace",
+    "title_welcome": "Willkommen",
+    "text_login": "Melden Sie sich an, um Ihre Daten der Digital Makerspace Apps hier einzusehen.",
+    "title_no_data": "Keine Daten gefunden",
+    "text_no_data": "Sie haben keine Daten, die mit dieser App verbunden sind."
 };
 const en = {
     "btn_show": "Show",
@@ -37,7 +41,11 @@ const en = {
     "title_data_cockpit": "Data-Cockpit",
     "text_description": "View your data of Digital Makerspace apps here.",
     "title_other_ccm_data": "Data from other ccm-based Apps",
-    "text_other_description": "These data stores contain data from the database collections. Data from these stores, do not belong to an app from the Digital Makerspace"
+    "text_other_description": "These data stores contain data from the database collections. Data from these stores, do not belong to an app from the Digital Makerspace",
+    "title_welcome": "Welcome",
+    "text_login": "Login to view your data of Digital Makerspace apps here.",
+    "title_no_data": "No data found",
+    "text_no_data": "You don't have any data connected to this app."
 
 };
 
