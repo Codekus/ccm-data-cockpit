@@ -171,6 +171,8 @@ const en = {
             };
             this.start = async () => {
                 this.html.shareApp(this);
+                const lang = this.lang && this.lang.active;
+                if ( this.lang ) $.params( { lang: lang } );
                 if (!this.user.isLoggedIn()) {
                     // destroy userData if user is not logged in
                     // this prevents previous users data from being displayed
@@ -178,6 +180,8 @@ const en = {
                     this.removeParams()
                     this.html.render(this.html.mainLogin(), this.element);
                     await this.element.querySelector("#user").appendChild(this.user.root);
+                    this.lang && $.setContent( this.element.querySelector( '#lang' ), this.lang.root );
+                    this.lang && this.lang.translate();
                     return
                 }
 
@@ -192,11 +196,8 @@ const en = {
                     await this.html.render(this.html.main(), this.element);
                 }
                 await this.element.querySelector("#user").appendChild(this.user.root);
-
-                this.onstart && await this.onstart({instance: this});
-                const lang = this.lang && this.lang.active;
-                if ( this.lang ) $.params( { lang: lang } );
                 this.lang && $.setContent( this.element.querySelector( '#lang' ), this.lang.root );
+                this.onstart && await this.onstart({instance: this});
                 this.lang && this.lang.translate();
             };
             this.render = {
