@@ -213,12 +213,13 @@ const en = {
             this.events = {
                 onShowDMSData: async (dataSet) => {
                     // set app id as URL parameter
-                    await $.params(Object.assign({app: dataSet.app.app}), true, true);
+
+                    await $.params(Object.assign({app: dataSet.app.app}), true);
                     await this.refresh()
                 },
                 onShowNonDMSData: async (collection) => {
                     // set collection name as URL parameter
-                    await $.params(Object.assign({ccm: collection}), true, true);
+                    await $.params(Object.assign({ccm: collection}), true);
                     await this.refresh()
                 },
                 onDeleteAllData: async (dataSetArray, alertsOn) => {
