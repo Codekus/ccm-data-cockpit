@@ -437,9 +437,12 @@ const en = {
             }
 
             this.removeParams = () => {
-                const url = window.location.origin + window.location.pathname;
-                window.history.replaceState({}, document.title, url);
-            }
+                const url = new URL(window.location);
+                url.searchParams.delete('app');
+                url.searchParams.delete('ccm');
+                window.history.replaceState({}, document.title, url.toString());
+            };
+
             this.debug = async () => {
                 debugger
                 //   const x = await this.apps.get()
