@@ -186,6 +186,8 @@ const en = {
                 await this.element.querySelector("#user").appendChild(this.user.root);
 
                 this.onstart && await this.onstart({instance: this});
+                const lang = this.lang && this.lang.active;
+                if ( this.lang ) $.params( { lang: lang } );
                 this.lang && $.setContent( this.element.querySelector( '#lang' ), this.lang.root );
                 this.lang && this.lang.translate();
             };
@@ -404,28 +406,32 @@ const en = {
 
             }
             this.refresh = async () => {
-                debugger
                 if (!this.userData) {
                     await this.fetch.setUserData()
                 }
                 const params = $.params();
+                const lang = this.lang && this.lang.active;
+                if ( this.lang ) $.params( { lang: lang } );
                 if (params.app) {
                     if (!this.userData.dms[params.app]) {
                         await this.html.render(this.html.noDataView(), this.element);
+                        this.lang && this.lang.translate();
                         return;
                     }
                     await this.render.dmsData(this.userData.dms[params.app])
+                    this.lang && this.lang.translate();
                 } else if(params.ccm) {
                     if (!this.userData.nonDms[params.ccm]) {
                         await this.html.render(this.html.noDataView(), this.element);
+                        this.lang && this.lang.translate();
                         return;
                     }
                     await this.render.nonDmsData(this.userData.nonDms[params.ccm], params.ccm)
+                    this.lang && this.lang.translate();
                 }else {
-                    debugger
                     await this.start()
+                    this.lang && this.lang.translate();
 
-                   // this.lang && this.lang.translate();
                 }
             }
 
