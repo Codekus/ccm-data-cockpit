@@ -25,6 +25,7 @@ export function main() {
 
     return html`
         <div class="d-flex justify-content-end">
+            <nav class="mx-2" id="lang"></nav>
             <button class="btn btn-success me-4" @click=${async () => {
                 await app.events.onProfile();
             }}>My profile data</button>
@@ -141,9 +142,9 @@ function nonDmsDataCard(nonDmsDataObject, collection) {
 
 function showDeleteButtons(showFunction, deleteFunction) {
     return html`
-        <button class="btn btn-primary me-2" @click=${() => {
+        <button data-lang="btn-show" class="btn btn-primary me-2" @click=${() => {
             showFunction();
-        }}>Show data</button>
+        }}>${app.en["btn-show"]}</button>
         <button class="btn btn-danger" @click=${() => {
             if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
                 deleteFunction();

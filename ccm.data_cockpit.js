@@ -5,7 +5,12 @@
  * @author Markus Klassen <markusklassen1497@gmail.com> 2024
  * @license The MIT License (MIT)
  */
-
+const de = {
+    "btn-show": "Anzeigen",
+};
+const en = {
+    "btn-show": "Show XD",
+};
 
 (() => {
 
@@ -72,7 +77,16 @@
 
             "shadow": "none",
             "submit": true,
-            userData: undefined
+            userData: undefined,
+            "lang": [ "ccm.start", "https://ccmjs.github.io/akless-components/lang/versions/ccm.lang-1.2.0.min.js", {
+                "translations": { "de": de, "en": en }
+            } ],
+            de : {
+                "btn-show": "Anzeigen",
+            },
+            en : {
+                "btn-show": "Show XD",
+            }
 
         },
         Instance: function () {
@@ -142,6 +156,8 @@
                 await this.element.querySelector("#user").appendChild(this.user.root);
 
                 this.onstart && await this.onstart({instance: this});
+                debugger
+                this.lang && $.setContent( this.element.querySelector( '#lang' ), this.lang.root );
             };
             this.render = {
                 dmsData: async (data) => {
