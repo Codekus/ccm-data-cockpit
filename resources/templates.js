@@ -156,7 +156,9 @@ function showDeleteButtons(showFunction, deleteFunction) {
 export function mainLogin() {
     return html`
     <div class="d-flex justify-content-end p-3">
+        <nav class="mx-2" id="lang"></nav>
       <div id="user"></div>
+        
     </div>
     <main class="container d-flex flex-column justify-content-center align-items-center vh-100">
       <div class="card shadow-lg p-4">
