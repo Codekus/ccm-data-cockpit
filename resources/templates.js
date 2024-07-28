@@ -26,14 +26,14 @@ export function main() {
     return html`
         <div class="d-flex justify-content-end">
             <nav class="mx-2" id="lang"></nav>
-            <button class="btn btn-success me-4" @click=${async () => {
+            <button data-lang="btn_my_profile_data" class="btn btn-success me-4" @click=${async () => {
                 await app.events.onProfile();
-            }}>My profile data</button>
-            <button class="btn btn-secondary me-4" @click=${async () => {
+            }}>${app.en.btn_my_profile_data}</button>
+            <button data-lang="btn_refresh_data" class="btn btn-secondary me-4" @click=${async () => {
                 await app.events.onRefreshClick();
                 alert("Data refreshed.")
-            }}>Refresh data</button>
-            <button class="btn btn-info me-4" @click=${toggleInfo}>Information</button>
+            }}>${app.en.btn_refresh_data}</button>
+            <button data-lang="btn_information" class="btn btn-info me-4" @click=${toggleInfo}>${app.en.btn_information}</button>
             <div class="mt-2 ml" id="user"></div>
         </div>
         <div id="info-box" class="info-box p-3 mb-3 bg-light border rounded" hidden>
@@ -44,14 +44,13 @@ export function main() {
 
         </div>
         <main class="container">
-            <h1 class="display-1 text-center fw-bold">Data-Cockpit</h1>
-            <p class="lead text-muted text-center">View your data of Digital Makerspace apps here.</p>
+            <h1 data-lang="title_data_cockpit" class="display-1 text-center fw-bold">${app.en.title_data_cockpit}</h1>
+            <p data-lang="text_description" class="lead text-muted text-center">${app.en.text_description}</p>
             <div id="apps-container" class="row justify-content-center">
                 ${dmsData(collections.dms)}
             </div>
-            <h2 class="display-4 text-center my-4">Data from other ccm-based Apps</h2>
-            <p class="lead text-muted text-center">These data stores contain data from the database collections.
-                Data from these stores, do not belong to an app from the Digital Makerspace</p>
+            <h2 data-lang="title_other_ccm_data" class="display-4 text-center my-4">${app.en.title_other_ccm_data}</h2>
+            <p data-lang="text_other_description" class="lead text-muted text-center">${app.en.text_other_description}</p>
             <div id="apps-container-other" class="row justify-content-center">
                 ${nonDmsData(collections.nonDms)}
             </div>
@@ -142,14 +141,14 @@ function nonDmsDataCard(nonDmsDataObject, collection) {
 
 function showDeleteButtons(showFunction, deleteFunction) {
     return html`
-        <button data-lang="btn-show" class="btn btn-primary me-2" @click=${() => {
+        <button data-lang="btn_show" class="btn btn-primary me-2" @click=${() => {
             showFunction();
-        }}>${app.en["btn-show"]}</button>
-        <button class="btn btn-danger" @click=${() => {
+        }}>${app.en["btn_show"]}</button>
+        <button data-lang="btn_delete_all" class="btn btn-danger" @click=${() => {
             if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
                 deleteFunction();
             }
-        }}>Delete all data</button>
+        }}>${app.en.btn_delete_all}</button>
     `
 }
 
@@ -185,25 +184,26 @@ export function renderDataOfApp(dataArray, title, configObject) {
 
     return html`
         <div class="d-flex justify-content-end ">
+            <nav class="mx-2" id="lang"></nav>
             <div id="user"></div>
         </div>
 
         <div class="d-flex gap-2">
-            <button @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
-                <i class="bi bi-house"></i> Home
+            <button data-lang="btn_home" @click=${() => app.events.onHome()} type="button" class="btn btn-primary">
+                <i class="bi bi-house"></i> ${app.en.btn_home}
             </button>
-            <button class="btn btn-secondary" @click=${async () => {
+            <button data-lang="btn_refresh_data" class="btn btn-secondary" @click=${async () => {
                 await app.events.onRefreshClick();
                 alert("Data refreshed.")
-            }}>Refresh data</button>
+            }}>${app.en.btn_refresh_data}</button>
             ${!isProfile ? html`
-                <button @click=${() => {
+                <button data-lang="btn_delete_all" @click=${() => {
                     if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
                         app.events.onDeleteAllData(dataArray, true)
                         app.refresh()
                     }}
                 } type="button" class="btn btn-danger">
-                    <i class="bi bi-house"></i> Delete all data
+                     ${app.en.btn_delete_all}
                 </button>
             ` : html`
                 <button @click=${() => {
@@ -367,13 +367,13 @@ export function renderAppDataCard(appData, isProfile) {
                 <th scope="row">${key === "_" ? "Permissions" : key}</th>
                 <td>
                     ${key !== '_' ? renderValue(value) : html`
-                        <button type="button" class="btn btn-primary" @click=${() => togglePopup(datasetKey)}>View</button>
+                        <button data-lang="btn_view" type="button" class="btn btn-primary" @click=${() => togglePopup(datasetKey)}>${app.en.btn_view}</button>
                         <div id="popup-${datasetKey}" class="card" style="display: none;">
                             <div class="card-body border border-dark">
                                 ${permissions(value)}
-                                <button type="button" class="btn btn-secondary me-2" @click=${() => togglePopup(datasetKey)}>Close</button>
+                                <button data-lang="btn_close" type="button" class="btn btn-secondary me-2" @click=${() => togglePopup(datasetKey)}>${app.en.btn_close}</button>
                                 ${isProfile ? html`` : html`
-                                    <button type="button" class="btn btn-success" @click=${async () => {
+                                    <button data-lang="btn_save" type="button" class="btn btn-success" @click=${async () => {
                                         const selectGroup = document.querySelectorAll(`#permissions-table-${datasetKey} select`);
                                         const permission = {
                                             get: selectGroup[0].value.toLowerCase(),
@@ -385,7 +385,7 @@ export function renderAppDataCard(appData, isProfile) {
                                         delete copyObject.__collectionName__
                                         await app.events.onChangePermission(copyObject, appData.__collectionName__);
                                         await alert("Permissions changed.")
-                                    }}>Save</button>`}
+                                    }}>${app.en.btn_save}</button>`}
                             </div>
                         </div>
                     `}
@@ -407,11 +407,11 @@ export function renderAppDataCard(appData, isProfile) {
                     </tbody>
                 </table>
                 <div class="d-flex">
-                    ${!isProfile ? html`<button class="btn btn-danger" @click=${async () => {
+                    ${!isProfile ? html`<button data-lang="btn_delete" class="btn btn-danger" @click=${async () => {
             if (confirm('Are you sure you want to delete this')) {
                 await app.events.onDeleteDataSet(appData.key, appData.__collectionName__);
             }
-        }}>Delete</button>` : html``}
+        }}>${app.en.btn_delete}</button>` : html``}
                 </div>
             </div>
         </div>
@@ -422,6 +422,7 @@ export function renderAppDataCard(appData, isProfile) {
 export function noDataView() {
     return html`
     <div class="d-flex justify-content-end">
+        <nav class="mx-2" id="lang"></nav>
       <div id="user"></div>
     </div>
     <main class="container d-flex flex-column justify-content-center align-items-center vh-100">

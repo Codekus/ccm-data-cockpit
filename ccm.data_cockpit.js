@@ -6,10 +6,39 @@
  * @license The MIT License (MIT)
  */
 const de = {
-    "btn-show": "Anzeigen",
+    "btn_show": "Anzeigen",
+    "btn_delete_all": "Alle Daten löschen",
+    "btn_delete": "Löschen",
+    "btn_my_profile_data": "Meine Profildaten",
+    "btn_refresh_data": "Daten aktualisieren",
+    "btn_information": "Informationen",
+    "btn_home": "Home",
+    "btn_delete_profile_and_data": "Profil und Daten löschen",
+    "btn_view": "Anzeigen",
+    "btn_close": "Schließen",
+    "btn_save": "Speichern",
+    "title_data_cockpit": "Daten-Cockpit",
+    "text_description": "Hier können Sie Ihre Daten der Digital Makerspace Apps einsehen.",
+    "title_other_ccm_data": "Daten von anderen ccm-basierten Apps",
+    "text_other_description": "Diese Datenstores enthalten Daten aus den Datenbankkollektionen. Daten aus diesen Stores gehören nicht zu einer App aus dem Digital Makerspace"
 };
 const en = {
-    "btn-show": "Show XD",
+    "btn_show": "Show",
+    "btn_delete_all": "Delete all data",
+    "btn_delete": "Delete",
+    "btn_my_profile_data": "My profile data",
+    "btn_refresh_data": "Refresh data",
+    "btn_information": "Information",
+    "btn_home": "Home",
+    "btn_delete_profile_and_data": "Delete profile and data",
+    "btn_view": "View",
+    "btn_close": "Close",
+    "btn_save": "Save",
+    "title_data_cockpit": "Data-Cockpit",
+    "text_description": "View your data of Digital Makerspace apps here.",
+    "title_other_ccm_data": "Data from other ccm-based Apps",
+    "text_other_description": "These data stores contain data from the database collections. Data from these stores, do not belong to an app from the Digital Makerspace"
+
 };
 
 (() => {
@@ -48,7 +77,6 @@ const en = {
             },
             "helper": ["ccm.load", {"url": "https://codekus.github.io/ccm-data-cockpit/libs/ccm/helper.js", "type": "module"}],
             "html": ["ccm.load", {"url": "https://codekus.github.io/ccm-data-cockpit/resources/templates.js", "type": "module"}],
-
             "libs": ["ccm.load",
                 [
                     "https://ccmjs.github.io/digital-makerspace/libs/bootstrap-5/js/bootstrap.bundle.min.js",
@@ -81,12 +109,8 @@ const en = {
             "lang": [ "ccm.start", "https://ccmjs.github.io/akless-components/lang/versions/ccm.lang-1.2.0.min.js", {
                 "translations": { "de": de, "en": en }
             } ],
-            de : {
-                "btn-show": "Anzeigen",
-            },
-            en : {
-                "btn-show": "Show XD",
-            }
+            de : de,
+            en : en
 
         },
         Instance: function () {
@@ -130,6 +154,12 @@ const en = {
                 });
 
                 this.onready && await this.onready({instance: this});
+                this.lang && this.lang.observe( lang => {
+
+                    $.params( { lang } );
+                    this.refresh();
+
+                } );
             };
             this.start = async () => {
                 this.html.shareApp(this);
@@ -156,8 +186,8 @@ const en = {
                 await this.element.querySelector("#user").appendChild(this.user.root);
 
                 this.onstart && await this.onstart({instance: this});
-                debugger
                 this.lang && $.setContent( this.element.querySelector( '#lang' ), this.lang.root );
+                this.lang && this.lang.translate();
             };
             this.render = {
                 dmsData: async (data) => {
@@ -374,7 +404,7 @@ const en = {
 
             }
             this.refresh = async () => {
-
+                debugger
                 if (!this.userData) {
                     await this.fetch.setUserData()
                 }
@@ -392,7 +422,10 @@ const en = {
                     }
                     await this.render.nonDmsData(this.userData.nonDms[params.ccm], params.ccm)
                 }else {
+                    debugger
                     await this.start()
+
+                   // this.lang && this.lang.translate();
                 }
             }
 
