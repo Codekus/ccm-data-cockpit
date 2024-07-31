@@ -24,7 +24,15 @@ const de = {
     "title_welcome": "Willkommen",
     "text_login": "Melden Sie sich an, um Ihre Daten der Digital Makerspace Apps hier einzusehen.",
     "title_no_data": "Keine Daten gefunden",
-    "text_no_data": "Sie haben keine Daten, die mit dieser App verbunden sind."
+    "text_no_data": "Sie haben keine Daten, die mit dieser App verbunden sind.",
+    "text_config_details": "Konfigurationsdetails",
+    "text_config_sub_text": "Konfigurationseinstellungen für diese Anwendung:",
+    "text_app_details": "App-Details",
+    "text_app_sub_text": "App-Einstellungen für diese Anwendung:",
+    "text_information_p1": "Dieses Daten-Cockpit zeigt Daten, die Sie in Digital Makerspace-Apps und anderen ccm-basierten Apps erstellt haben.",
+    "text_information_p2": "ccm-basierte Apps speichern Daten in MongoDB-Sammlungen. Jede Sammlung enthält benutzererstellte Daten. Daten, die nicht zu einer DMS-App gehören, werden unten angezeigt.",
+    "text_information_p3": "Drücken Sie erneut auf \"Informationen\", um dieses Feld zu schließen.",
+    "title_information": "Informationen",
 };
 const en = {
     "btn_show": "Show",
@@ -45,7 +53,16 @@ const en = {
     "title_welcome": "Welcome",
     "text_login": "Login to view your data of Digital Makerspace apps here.",
     "title_no_data": "No data found",
-    "text_no_data": "You don't have any data connected to this app."
+    "text_no_data": "You don't have any data connected to this app.",
+    "text_config_details": "Configuration details",
+    "text_config_sub_text": "Configuration settings for this application:",
+    "text_app_details": "App details",
+    "text_app_sub_text": "App settings for this application:",
+    "text_information_p1": "This Data-Cockpit shows data you created in Digital Makerspace apps and other ccm-based apps.",
+    "text_information_p2": "ccm-based apps save data in MongoDB collections. Each collection contains user-created data. Data that doesn't belong to a DMS app will appear below.",
+    "text_information_p3": "Press \"Information\" again to close this box.",
+    "title_information": "Information",
+
 
 };
 
@@ -238,7 +255,10 @@ const en = {
                     }
                     await this.fetch.setUserData()
                     await this.refresh()
-                    if (alertsOn) alert("All data deleted")
+                    if (alertsOn) {
+                        const lang = $.params().lang ? $.params().lang : "en";
+                        alert(lang === "en" ? "All data deleted" : "Alle Daten gelöscht")
+                    }
                 },
                 onDeleteDataSet: async (key, collection) => {
                     this.data.store.name = collection
@@ -264,11 +284,13 @@ const en = {
                         await this.events.onDeleteAllData({data: obj2[key]}, false)
                     }
 
-
-                    alert("All data deleted")
-                    if (confirm("All app data has been deleted. Do you want to delete your profile?")) {
+                    const lang = $.params().lang ? $.params().lang : "en";
+                    alert(lang === "en" ? "All data deleted" : "Alle Daten gelöscht")
+                    if (confirm(lang === "en" ?
+                        "All app data has been deleted. Do you want to delete your profile?" :
+                        "Alle App-Daten wurden gelöscht. Möchten Sie Ihr Profil löschen?")) {
                         await this.events.onDeleteDataSet(this.user.getValue().key, "dms-user")
-                        alert("Profile deleted")
+                        alert(lang ? "Profile deleted" : "Profil gelöscht")
                         await this.user.logout()
                         await this.refresh()
                     }

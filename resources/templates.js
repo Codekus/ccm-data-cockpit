@@ -1,6 +1,6 @@
 /**
- * @overview HTML templates of <i>ccmjs</i>-based web component for a code editor that uses CodeMirror 5.
- * @author André Kless <andre.kless@web.de> 2023
+ * @overview HTML templates of the ccm-based App: 'Data-Cockpit'
+ * @author Markus Klassen <markusklassen1497@gmail.com> 2024
  * @license The MIT License (MIT)
  */
 
@@ -31,16 +31,18 @@ export function main() {
             }}>${app.en.btn_my_profile_data}</button>
             <button data-lang="btn_refresh_data" class="btn btn-secondary me-4" @click=${async () => {
                 await app.events.onRefreshClick();
-                alert("Data refreshed.")
+                const lang = $.params().lang ? $.params().lang : "en";
+                let alertText = lang === "en" ? "Data refreshed." : "Daten aktualisiert."
+                alert(alertText)
             }}>${app.en.btn_refresh_data}</button>
             <button data-lang="btn_information" class="btn btn-info me-4" @click=${toggleInfo}>${app.en.btn_information}</button>
             <div class="mt-2 ml" id="user"></div>
         </div>
         <div id="info-box" class="info-box p-3 mb-3 bg-light border rounded" hidden>
-            <h4>Information</h4>
-            <p>This Data-Cockpit shows data you created in Digital Makerspace apps and other ccm-based apps.</p>
-            <p>ccm-based apps save data in MongoDB collections. Each collection contains user-created data. Data that doesn't belong to a DMS app will appear below.</p>
-            <p>Press "Information" again to close this box.</p>
+            <h4 data-lang="title_information">${app.en.title_information}</h4>
+            <p data-lang="text_information_p1">${app.en.text_information_p1}</p>
+            <p data-lang="text_information_p2">${app.en.text_information_p2}</p>
+            <p data-lang="text_information_p3">${app.en.text_information_p3}</p>
 
         </div>
         <main class="container">
@@ -118,7 +120,12 @@ function nonDmsDataCard(nonDmsDataObject, collection) {
                 </div>
                 <div class="col-8">
                     <div class="card-body">
-                        <h5 class="card-title">Collection name: ${title}</h5>
+                        <h5 class="card-title">${(() => {
+                            const lang = $.params().lang ? $.params().lang : "en";
+                            return lang === "en" ? `Collection name: ${title}` : `Sammlungsname: ${title}`;
+                        })()}</h5>
+
+
                         <div class="d-flex">
                             ${showDeleteButtons(() => {
                                 app.events.onShowNonDMSData(collection)
@@ -145,7 +152,11 @@ function showDeleteButtons(showFunction, deleteFunction) {
             showFunction();
         }}>${app.en["btn_show"]}</button>
         <button data-lang="btn_delete_all" class="btn btn-danger" @click=${() => {
-            if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+            const lang = $.params().lang ? $.params().lang : "en";
+            let confirmText = lang === "en" ? 
+                    "Are you sure you want to delete all data? This won't delete the app." : 
+                    "Sind Sie sicher, dass Sie alle Daten löschen möchten? Dies löscht nicht die App"
+            if (confirm(confirmText)) {
                 deleteFunction();
             }
         }}>${app.en.btn_delete_all}</button>
@@ -196,11 +207,17 @@ export function renderDataOfApp(dataArray, title, configObject) {
             </button>
             <button data-lang="btn_refresh_data" class="btn btn-secondary" @click=${async () => {
                 await app.events.onRefreshClick();
-                alert("Data refreshed.")
+                const lang = $.params().lang ? $.params().lang : "en";
+                let alertText = lang === "en" ? "Data refreshed." : "Daten aktualisiert."
+                alert(alertText)
             }}>${app.en.btn_refresh_data}</button>
             ${!isProfile ? html`
                 <button data-lang="btn_delete_all" @click=${() => {
-                    if (confirm("Are you sure you want to delete all data? This won't delete the app.")) {
+                    const lang = $.params().lang ? $.params().lang : "en";
+                    let confirmText = lang === "en" ? 
+                            "Are you sure you want to delete all data? This won't delete the app." : 
+                            "Sind Sie sicher, dass Sie alle Daten löschen möchten? Dies löscht nicht die App."
+                    if (confirm(confirmText)) {
                         app.events.onDeleteAllData(dataArray, true)
                         app.refresh()
                     }}
@@ -209,8 +226,13 @@ export function renderDataOfApp(dataArray, title, configObject) {
                 </button>
             ` : html`
                 <button @click=${() => {
-                    if (confirm("Are you sure you want to delete your profile and all your data? This can't be undone.")) {
-                        if (confirm("Are you really sure?")) {
+                    const lang = $.params().lang ? $.params().lang : "en";
+                    let confirmText = lang === "en" ?
+                            "Are you sure you want to delete your profile and all your data? This can't be undone." :
+                            "Sind Sie sicher, dass Sie Ihr Profil und alle Ihre Daten löschen möchten? Dies kann nicht rückgängig gemacht werden."
+                    if (confirm(confirmText)) {
+                        let confirmText2 = lang === "en" ? "Are you really sure?" : "Sind Sie sich wirklich sicher?"
+                        if (confirm(confirmText2)) {
                             app.events.onDeleteProfile()
                         }
                     }
@@ -224,8 +246,16 @@ export function renderDataOfApp(dataArray, title, configObject) {
 
         <h1 class="mt-3">${title}</h1>
         <div>
-            ${configObject ? renderConfigCard(configObject.config, "config", "Configuration details", "Configuration settings for this application:") : html``}
-            ${configObject ? renderConfigCard(configObject.app, "app", "App details", "App settings for this application:") : html``}
+            ${configObject ? renderConfigCard(
+                configObject.config,
+                    "config",
+                    {title: app.en.text_config_details, class: "text_config_details"},
+                    {desc: app.en.text_config_sub_text, class: "text_config_sub_text"}) : html``}
+            ${configObject ? renderConfigCard(
+                configObject.app,
+                    "app",
+                    {title: app.en.text_app_details, class: "text_app_details"},
+                    {desc: app.en.text_app_sub_text, class: "text_app_sub_text"}) : html``}
       ${dataArray.data.map(data => renderAppDataCard(data, isProfile))}
     </div>
   `;
@@ -268,8 +298,8 @@ export function renderConfigCard(config, id, title, description) {
         <div class="card mt-3 mb-4">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <div>
-                    <h5>${title}</h5>
-                    <p>${description}</p>
+                    <h5 data-lang=${title.class}>${title.title}</h5>
+                    <p data-lang=${description.class} >${description.desc}</p>
 
                 </div>
                 <button class="btn btn-primary" @click=${event => {
@@ -386,7 +416,9 @@ export function renderAppDataCard(appData, isProfile) {
                                         copyObject._.access = permission;
                                         delete copyObject.__collectionName__
                                         await app.events.onChangePermission(copyObject, appData.__collectionName__);
-                                        await alert("Permissions changed.")
+                                        const lang = $.params().lang ? $.params().lang : "en";
+                                        let alertText = lang === "en" ? "Permission changed." : "Berechtigungen geändert."
+                                        alert(alertText)
                                     }}>${app.en.btn_save}</button>`}
                             </div>
                         </div>
@@ -410,7 +442,11 @@ export function renderAppDataCard(appData, isProfile) {
                 </table>
                 <div class="d-flex">
                     ${!isProfile ? html`<button data-lang="btn_delete" class="btn btn-danger" @click=${async () => {
-            if (confirm('Are you sure you want to delete this')) {
+                        const lang = $.params().lang ? $.params().lang : "en";
+                        let confirmText = lang === "en" ? 
+                                "Are you sure you want to delete this?" : 
+                                "Sind Sie sicher, dass Sie diesen Datensatz löschen möchten?"
+            if (confirm(confirmText)) {
                 await app.events.onDeleteDataSet(appData.key, appData.__collectionName__);
             }
         }}>${app.en.btn_delete}</button>` : html``}
