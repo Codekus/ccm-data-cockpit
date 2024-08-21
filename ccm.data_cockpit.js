@@ -155,8 +155,111 @@ const en = {
                 "live_poll_data",
                 "todo",
                 "chat-data",
-                "debugstore"
-            ]
+                // dummy collections to test performance
+                "debugstore",
+                "debugstore_1",
+                "debugstore_2",
+                "debugstore_3",
+                "debugstore_4",
+                "debugstore_5",
+                "debugstore_6",
+                "debugstore_7",
+                "debugstore_8",
+                "debugstore_9",
+                "debugstore_10",
+                "debugstore_11",
+                "debugstore_12",
+                "debugstore_13",
+                "debugstore_14",
+                "debugstore_15",
+                "debugstore_16",
+                "debugstore_17",
+                "debugstore_18",
+                "debugstore_19",
+                "debugstore_20",
+                "debugstore_21",
+                "debugstore_22",
+                "debugstore_23",
+                "debugstore_24",
+                "debugstore_25",
+                "debugstore_26",
+                "debugstore_27",
+                "debugstore_28",
+                "debugstore_29",
+                "debugstore_30",
+                "debugstore_31",
+                "debugstore_32",
+                "debugstore_33",
+                "debugstore_34",
+                "debugstore_35",
+                "debugstore_36",
+                "debugstore_37",
+                "debugstore_38",
+                "debugstore_39",
+                "debugstore_40",
+                "debugstore_41",
+                "debugstore_42",
+                "debugstore_43",
+                "debugstore_44",
+                "debugstore_45",
+                "debugstore_46",
+                "debugstore_47",
+                "debugstore_48",
+                "debugstore_49",
+                "debugstore_50",
+                "debugstore_51",
+                "debugstore_52",
+                "debugstore_53",
+                "debugstore_54",
+                "debugstore_55",
+                "debugstore_56",
+                "debugstore_57",
+                "debugstore_58",
+                "debugstore_59",
+                "debugstore_60",
+                "debugstore_61",
+                "debugstore_62",
+                "debugstore_63",
+                "debugstore_64",
+                "debugstore_65",
+                "debugstore_66",
+                "debugstore_67",
+                "debugstore_68",
+                "debugstore_69",
+                "debugstore_70",
+                "debugstore_71",
+                "debugstore_72",
+                "debugstore_73",
+                "debugstore_74",
+                "debugstore_75",
+                "debugstore_76",
+                "debugstore_77",
+                "debugstore_78",
+                "debugstore_79",
+                "debugstore_80",
+                "debugstore_81",
+                "debugstore_82",
+                "debugstore_83",
+                "debugstore_84",
+                "debugstore_85",
+                "debugstore_86",
+                "debugstore_87",
+                "debugstore_88",
+                "debugstore_89",
+                "debugstore_90",
+                "debugstore_91",
+                "debugstore_92",
+                "debugstore_93",
+                "debugstore_94",
+                "debugstore_95",
+                "debugstore_96",
+                "debugstore_97",
+                "debugstore_98",
+                "debugstore_99",
+                "debugstore_100"
+            ];
+
+
 
 
             this.init = async () => {
@@ -360,45 +463,52 @@ const en = {
                     // nonDMS data will be mapped to the collection its in
                     // dms data will be mapped the the App ID it belongs to
                     const nonDmsAppKeyObjects = new Map()
-                    for (const collection of collections) {
-
+                    // Create an array of promises to execute them all in parallel later
+                    const promises = collections.map(async (collection) => {
                         this.data.store.name = collection;
                         const data = await this.data.store.get({
                             "_.creator": this.user.getValue().user,
                             //app: {$exists: true}
                         });
 
-
-                        for (const dataSet of data) {
+                        data.forEach((dataSet) => {
                             let isPartOfDmsApp = false;
+
                             if (dataSet.app) {
                                 mappedData.forEach((value, key) => {
-                                    if (value.config[0].data.key === dataSet.app || (Array.isArray(value.config[0].key) && value.config[0].data.key[0] === dataSet.app)){
-                                        dataSet.__collectionName__ = collection
-                                        value.data.push(dataSet)
+                                    if (
+                                        value.config[0].data.key === dataSet.app ||
+                                        (Array.isArray(value.config[0].data.key) && value.config[0].data.key[0] === dataSet.app)
+                                    ) {
+                                        dataSet.__collectionName__ = collection;
+                                        value.data.push(dataSet);
                                         isPartOfDmsApp = true;
                                     }
-                                })
+                                });
+
                                 // if an app has "app" property but is not part of DMS app
                                 if (!isPartOfDmsApp) {
-                                    dataSet.__collectionName__ = collection
-                                    if(nonDmsAppKeyObjects.has(collection)) {
-                                        nonDmsAppKeyObjects.get(collection).push(dataSet)
+                                    dataSet.__collectionName__ = collection;
+                                    if (nonDmsAppKeyObjects.has(collection)) {
+                                        nonDmsAppKeyObjects.get(collection).push(dataSet);
                                     } else {
-                                        nonDmsAppKeyObjects.set(collection, [dataSet])
+                                        nonDmsAppKeyObjects.set(collection, [dataSet]);
                                     }
                                 }
                             } else {
-                                dataSet.__collectionName__ = collection
-                                if(nonDmsAppKeyObjects.has(collection)) {
-                                    nonDmsAppKeyObjects.get(collection).push(dataSet)
+                                dataSet.__collectionName__ = collection;
+                                if (nonDmsAppKeyObjects.has(collection)) {
+                                    nonDmsAppKeyObjects.get(collection).push(dataSet);
                                 } else {
-                                    nonDmsAppKeyObjects.set(collection, [dataSet])
+                                    nonDmsAppKeyObjects.set(collection, [dataSet]);
                                 }
-
                             }
-                        }
-                    }
+                        });
+                    });
+
+                    // Execute promises in parallel
+                    await Promise.all(promises);
+
 
                     // find apps that the user created
                     const dataConfigsCreator = await this.configs.get({
